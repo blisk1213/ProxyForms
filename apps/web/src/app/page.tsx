@@ -61,75 +61,6 @@ export default function OGImageGenerator() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load Google Font dynamically
-  useEffect(() => {
-    const link = document.createElement("link");
-    link.href = `https://fonts.googleapis.com/css2?family=${selectedFont.replace(
-      " ",
-      "+"
-    )}:wght@400;600;700&display=swap`;
-    link.rel = "stylesheet";
-    document.head.appendChild(link);
-
-    return () => {
-      document.head.removeChild(link);
-    };
-  }, [selectedFont]);
-
-  // Generate canvas image
-  useEffect(() => {
-    generateImage();
-  }, [
-    title,
-    description,
-    url,
-    selectedLayout,
-    backgroundColor,
-    textColor,
-    selectedFont,
-    logo,
-    generateImage,
-  ]);
-
-  const generateImage = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    // Set canvas size (Open Graph standard: 1200x630)
-    canvas.width = 1200;
-    canvas.height = 630;
-
-    // Clear canvas
-    ctx.fillStyle = backgroundColor;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Set text properties
-    ctx.fillStyle = textColor;
-    ctx.textAlign = "left";
-    ctx.textBaseline = "top";
-
-    // Draw based on selected layout
-    switch (selectedLayout) {
-      case "minimal":
-        drawMinimalLayout(ctx);
-        break;
-      case "centered":
-        drawCenteredLayout(ctx);
-        break;
-      case "split":
-        drawSplitLayout(ctx);
-        break;
-      case "card":
-        drawCardLayout(ctx);
-        break;
-      default:
-        drawMinimalLayout(ctx);
-    }
-  }, [selectedLayout, backgroundColor, textColor, drawMinimalLayout, drawCenteredLayout, drawSplitLayout, drawCardLayout]);
-
   const drawMinimalLayout = useCallback((ctx: CanvasRenderingContext2D) => {
     // Logo
     if (logo) {
@@ -264,6 +195,75 @@ export default function OGImageGenerator() {
     ctx.fillText(url, 150, 470);
     ctx.globalAlpha = 1;
   }, [textColor, logo, selectedFont, title, description, url]);
+
+  const generateImage = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // Set canvas size (Open Graph standard: 1200x630)
+    canvas.width = 1200;
+    canvas.height = 630;
+
+    // Clear canvas
+    ctx.fillStyle = backgroundColor;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Set text properties
+    ctx.fillStyle = textColor;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+
+    // Draw based on selected layout
+    switch (selectedLayout) {
+      case "minimal":
+        drawMinimalLayout(ctx);
+        break;
+      case "centered":
+        drawCenteredLayout(ctx);
+        break;
+      case "split":
+        drawSplitLayout(ctx);
+        break;
+      case "card":
+        drawCardLayout(ctx);
+        break;
+      default:
+        drawMinimalLayout(ctx);
+    }
+  }, [selectedLayout, backgroundColor, textColor, drawMinimalLayout, drawCenteredLayout, drawSplitLayout, drawCardLayout]);
+
+  // Load Google Font dynamically
+  useEffect(() => {
+    const link = document.createElement("link");
+    link.href = `https://fonts.googleapis.com/css2?family=${selectedFont.replace(
+      " ",
+      "+"
+    )}:wght@400;600;700&display=swap`;
+    link.rel = "stylesheet";
+    document.head.appendChild(link);
+
+    return () => {
+      document.head.removeChild(link);
+    };
+  }, [selectedFont]);
+
+  // Generate canvas image
+  useEffect(() => {
+    generateImage();
+  }, [
+    title,
+    description,
+    url,
+    selectedLayout,
+    backgroundColor,
+    textColor,
+    selectedFont,
+    logo,
+    generateImage,
+  ]);
 
   const wrapText = (
     ctx: CanvasRenderingContext2D,

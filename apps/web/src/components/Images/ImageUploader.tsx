@@ -36,6 +36,57 @@ export const ImageUploader = ({
   const isProPlan = subscription.data?.plan === "pro";
   const uploadsDisabled = subscription.isLoading;
 
+  const uploadToClient = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const imageFile = e.target.files[0];
+      const fileSizeFormatted = formatBytes(imageFile.size);
+      const isVideo = imageFile.type.startsWith("video/");
+      const isImage = imageFile.type.startsWith("image/");
+
+      // --- Add Image Size Warning (> 2MB) ---
+      if (isImage && imageFile.size > MAX_IMAGE_WARNING_SIZE_BYTES) {
+        const proceed = window.confirm(
+          `This image is larger than 2MB (${fileSizeFormatted}). Large images can impact performance. Consider compressing it before uploading.\n\nDo you want to proceed anyway?`
+        );
+        if (!proceed) {
+          e.target.value = ""; // Clear the file input
+          return; // Stop processing
+        }
+      }
+      // --- End Image Size Warning ---
+
+      // --- Add Video Size Warning (> 5MB) ---
+      if (isVideo && imageFile.size > MAX_VIDEO_WARNING_SIZE_BYTES) {
+        const proceed = window.confirm(
+          `This video is larger than 5MB (${fileSizeFormatted}). Uploading large videos can take time.\n\nDo you want to proceed anyway?`
+        );
+        if (!proceed) {
+          e.target.value = ""; // Clear the file input
+          return; // Stop processing
+        }
+      }
+      // --- End Video Size Warning ---
+
+      // --- Free Plan Limit Check (> 5MB) ---
+      // This check remains the same and applies to ALL file types
+      if (!isProPlan && imageFile.size > MAX_FREE_SIZE_BYTES) {
+        toast.error(
+          `File size (${fileSizeFormatted}) exceeds 5MB limit for free plan. Upgrade to Pro for larger uploads.`
+        );
+        e.target.value = "";
+        return;
+      }
+      // --- End Free Plan Limit Check ---
+
+      setImage(imageFile);
+      setEditableFileName(imageFile.name.replace(/\.[^/.]+$/, ""));
+      const imageInfo = await getImageInfo(imageFile);
+      setImageInfo(imageInfo);
+      setCreateObjectURL(URL.createObjectURL(imageFile));
+      setLoading(false);
+    }
+  }, [isProPlan]);
+
   useEffect(() => {
     // on mount, listen for paste events
     // if the paste event has image data, add it to the input for upload
@@ -219,57 +270,6 @@ export const ImageUploader = ({
       setLoading(false);
     }
   }
-
-  const uploadToClient = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const imageFile = e.target.files[0];
-      const fileSizeFormatted = formatBytes(imageFile.size);
-      const isVideo = imageFile.type.startsWith("video/");
-      const isImage = imageFile.type.startsWith("image/");
-
-      // --- Add Image Size Warning (> 2MB) ---
-      if (isImage && imageFile.size > MAX_IMAGE_WARNING_SIZE_BYTES) {
-        const proceed = window.confirm(
-          `This image is larger than 2MB (${fileSizeFormatted}). Large images can impact performance. Consider compressing it before uploading.\n\nDo you want to proceed anyway?`
-        );
-        if (!proceed) {
-          e.target.value = ""; // Clear the file input
-          return; // Stop processing
-        }
-      }
-      // --- End Image Size Warning ---
-
-      // --- Add Video Size Warning (> 5MB) ---
-      if (isVideo && imageFile.size > MAX_VIDEO_WARNING_SIZE_BYTES) {
-        const proceed = window.confirm(
-          `This video is larger than 5MB (${fileSizeFormatted}). Uploading large videos can take time.\n\nDo you want to proceed anyway?`
-        );
-        if (!proceed) {
-          e.target.value = ""; // Clear the file input
-          return; // Stop processing
-        }
-      }
-      // --- End Video Size Warning ---
-
-      // --- Free Plan Limit Check (> 5MB) ---
-      // This check remains the same and applies to ALL file types
-      if (!isProPlan && imageFile.size > MAX_FREE_SIZE_BYTES) {
-        toast.error(
-          `File size (${fileSizeFormatted}) exceeds 5MB limit for free plan. Upgrade to Pro for larger uploads.`
-        );
-        e.target.value = "";
-        return;
-      }
-      // --- End Free Plan Limit Check ---
-
-      setImage(imageFile);
-      setEditableFileName(imageFile.name.replace(/\.[^/.]+$/, ""));
-      const imageInfo = await getImageInfo(imageFile);
-      setImageInfo(imageInfo);
-      setCreateObjectURL(URL.createObjectURL(imageFile));
-      setLoading(false);
-    }
-  }, [isProPlan]);
 
   return (
     <div className={cn("max-w-xl", className)}>

@@ -13,5 +13,5 @@ export const {
 
 // For backward compatibility
 export const SessionProvider = ({ children }: { children: React.ReactNode }) => {
-  return <>{children}</>;
+  return children;
 };

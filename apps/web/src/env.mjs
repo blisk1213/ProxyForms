@@ -16,6 +16,8 @@ export const env = createEnv({
     // Authentication (better-auth)
     BETTER_AUTH_SECRET: z.string().min(32),
     BETTER_AUTH_URL: z.string().url().optional(),
+    CSRF_SECRET: z.string().min(32).optional(),
+    ENCRYPTION_KEY: z.string().min(32).optional(),
 
     // Payments (Stripe)
     STRIPE_SECRET_KEY: z.string().min(1),
@@ -62,6 +64,7 @@ export const env = createEnv({
     // Authentication URLs
     NEXT_PUBLIC_SIGN_IN_URL: z.string().optional().default("/sign-in"),
     NEXT_PUBLIC_SIGN_UP_URL: z.string().optional().default("/sign-up"),
+    NEXT_PUBLIC_SIGN_OUT_URL: z.string().optional().default("/sign-out"),
 
     // Payments (Stripe)
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().min(1),
@@ -88,14 +91,11 @@ export const env = createEnv({
     // Database
     DATABASE_URL: process.env.DATABASE_URL,
 
-    // Clerk
-    CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
-    CLERK_WEBHOOK_SECRET: process.env.CLERK_WEBHOOK_SECRET,
-    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
-    NEXT_PUBLIC_CLERK_SIGN_IN_URL: process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL,
-    NEXT_PUBLIC_CLERK_SIGN_UP_URL: process.env.NEXT_PUBLIC_CLERK_SIGN_UP_URL,
-    NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL: process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL,
-    NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL: process.env.NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL,
+    // Authentication (better-auth)
+    BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
+    BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
+    CSRF_SECRET: process.env.CSRF_SECRET,
+    ENCRYPTION_KEY: process.env.ENCRYPTION_KEY,
 
     // Stripe
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
@@ -122,6 +122,9 @@ export const env = createEnv({
     // Application
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+    NEXT_PUBLIC_SIGN_IN_URL: process.env.NEXT_PUBLIC_SIGN_IN_URL,
+    NEXT_PUBLIC_SIGN_UP_URL: process.env.NEXT_PUBLIC_SIGN_UP_URL,
+    NEXT_PUBLIC_SIGN_OUT_URL: process.env.NEXT_PUBLIC_SIGN_OUT_URL,
 
     // Optional: AI
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,

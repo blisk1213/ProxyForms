@@ -4,7 +4,7 @@ import { z } from "zod";
 import { logger } from "hono/logger";
 import { prettyJSON } from "hono/pretty-json";
 import { handle } from "hono/vercel";
-import { currentUser } from "@clerk/nextjs/server";
+import { auth } from "@/lib/auth";
 import { db } from "@/db";
 import { blogs, subscriptions, blogImages, authors } from "@/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
@@ -63,10 +63,12 @@ const handleError = (c: Context, error: keyof typeof errors, rawLog: any) => {
   return errors[error](c);
 };
 
-const getUser = async () => {
-  const user = await currentUser();
+const getUser = async (c: Context) => {
+  const session = await auth.api.getSession({
+    headers: c.req.raw.headers,
+  });
 
-  if (!user) {
+  if (!session || !session.user) {
     return {
       user: null,
       error: { message: "Unauthorized" },
@@ -75,8 +77,8 @@ const getUser = async () => {
 
   return {
     user: {
-      id: user.id,
-      email: user.primaryEmailAddress?.emailAddress || null,
+      id: session.user.id,
+      email: session.user.email || null,
     },
     error: null,
   };
@@ -126,7 +128,7 @@ const api = new Hono()
     async (c) => {
       try {
         const stripe = createStripeClient();
-        const { user, error } = await getUser();
+        const { user, error } = await getUser(c);
         const userId = c.req.param("user_id");
         const plan = c.req.query("plan");
         const interval = c.req.query("interval");
@@ -223,7 +225,7 @@ const api = new Hono()
   .get("/accounts/:user_id/customer-portal", async (c) => {
     try {
       const stripe = createStripeClient();
-      const { user } = await getUser();
+      const { user } = await getUser(c);
 
       if (!user) {
         return c.json({ error: "Unauthorized" }, { status: 401 });
@@ -290,7 +292,7 @@ const api = new Hono()
     async (c) => {
       const MAX_FREE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB - Define limit on backend
       const blogId = c.req.param("blog_id");
-      const { user } = await getUser();
+      const { user } = await getUser(c);
       const { original_file_name, size_in_bytes, content_type } = c.req.query();
 
       if (!user || !user.id) {
@@ -439,7 +441,7 @@ const api = new Hono()
         const blogId = c.req.param("blog_id");
 
         // Check if the user owns the blog
-        const { user } = await getUser();
+        const { user } = await getUser(c);
         if (!user || !user.id) {
           console.log("🔴 !user || !user.id", user);
           return c.json({ error: "Unauthorized" }, { status: 401 });
@@ -609,7 +611,7 @@ const api = new Hono()
         const { fileNames } = await c.req.json();
 
         // Check if the user owns the blog
-        const { user } = await getUser();
+        const { user } = await getUser(c);
         if (!user || !user.id) {
           return c.json({ error: "Unauthorized" }, { status: 401 });
         }
@@ -722,7 +724,7 @@ const api = new Hono()
       const twitter = formData.get("twitter") as string;
       const website = formData.get("website") as string;
       const bio = formData.get("bio") as string;
-      const { user } = await getUser();
+      const { user } = await getUser(c);
 
       if (!user || !user.id) {
         return c.json({ error: "Unauthorized" }, { status: 401 });
@@ -801,7 +803,7 @@ const api = new Hono()
       const formData = await c.req.formData();
 
       // Check authorization
-      const { user } = await getUser();
+      const { user } = await getUser(c);
       if (!user || !user.id) {
         return c.json({ error: "Unauthorized" }, { status: 401 });
       }
@@ -878,7 +880,7 @@ const api = new Hono()
     async (c) => {
       const blogId = c.req.param("blog_id");
       const { fileName, contentType, sizeInBytes } = await c.req.json();
-      const { user } = await getUser();
+      const { user } = await getUser(c);
 
       if (!user || !user.id) {
         return c.json({ error: "Unauthorized" }, { status: 401 });

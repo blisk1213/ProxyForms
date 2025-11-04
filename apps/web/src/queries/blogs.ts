@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { db } from "@/db";
 import { blogs } from "@/db/schema/blogs";
 import { eq, asc } from "drizzle-orm";
-import { useUser } from "@clerk/nextjs";
+import { useSession } from "@/lib/auth-client";
 
 export const keys = {
   blogs: () => ["blogs"],
@@ -50,7 +50,7 @@ export const useBlogsQuery = ({ enabled }: { enabled: boolean }) =>
 
 export const useCreateBlogMutation = () => {
   const queryClient = useQueryClient();
-  const { user } = useUser();
+  const { data: session } = useSession();
 
   return useMutation({
     mutationFn: async (newBlog: {
@@ -59,12 +59,12 @@ export const useCreateBlogMutation = () => {
       emoji: string;
       // slug: string;
     }) => {
-      if (!user?.id) {
+      if (!session?.user?.id) {
         throw new Error("User not authenticated");
       }
       const result = await db.insert(blogs).values({
         ...newBlog,
-        userId: user.id,
+        userId: session.user.id,
       }).returning();
       return { data: result[0], error: null };
     },

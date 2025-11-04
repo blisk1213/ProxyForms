@@ -9,7 +9,7 @@ import {
 import { usePricesQuery } from "@/queries/prices";
 import { useProductsQuery } from "@/queries/products";
 import { useSubscriptionQuery } from "@/queries/subscription";
-import { useUser } from "@clerk/nextjs";
+import { useSession } from "@/lib/auth-client";
 import {
   Check,
   CheckCircle,
@@ -36,7 +36,7 @@ type Props = {};
 export const SubscribeSection = () => {
   const products = useProductsQuery();
   const prices = usePricesQuery();
-  const { user } = useUser();
+  const { data: session } = useSession();
   const [interval, setInterval] = React.useState<"year" | "month">("year");
   const [isLoading, setIsLoading] = useState(false);
   const subscription = useSubscriptionQuery();
@@ -44,7 +44,7 @@ export const SubscribeSection = () => {
     setIsLoading(true);
     toast.info("Redirecting to Stripe...");
 
-    if (!user || !user.id) {
+    if (!session?.user?.id) {
       toast.error("User not found");
       setIsLoading(false);
       return;
@@ -52,7 +52,7 @@ export const SubscribeSection = () => {
 
     const response = await API().v2.accounts[":user_id"].checkout.$get({
       param: {
-        user_id: user.id,
+        user_id: session.user.id,
       },
       query: {
         plan: plan.id,
@@ -122,7 +122,7 @@ export const SubscribeSection = () => {
 
 const AccountPage = () => {
   const [loading, setLoading] = React.useState(false);
-  const { user } = useUser();
+  const { data: session } = useSession();
   const router = useRouter();
 
   const isSuccess = router.query.success === "true";
@@ -136,7 +136,7 @@ const AccountPage = () => {
       "customer-portal"
     ].$get({
       param: {
-        user_id: user?.id || "",
+        user_id: session?.user?.id || "",
       },
     });
 
@@ -195,10 +195,10 @@ const AccountPage = () => {
       <Section className="px-4">
         <SectionTitle>Account</SectionTitle>
         <AccountList>
-          <AccountListItem label="Email" value={user?.primaryEmailAddress?.emailAddress} />
+          <AccountListItem label="Email" value={session?.user?.email} />
           <AccountListItem
             label="Created at"
-            value={formatDate(user?.createdAt ? new Date(user.createdAt).toISOString() : "")}
+            value={formatDate(session?.user?.createdAt ? new Date(session.user.createdAt).toISOString() : "")}
           />
           <AccountListItem
             label="Reset password"

@@ -6,7 +6,7 @@ import Feedback from "@/components/Feedback";
 import Footer from "@/components/Footer";
 import AppChecks from "@/components/LoggedInUserChecks";
 import { Loader2 } from "lucide-react";
-import { useUser } from "@clerk/nextjs";
+import { useSession } from "@/lib/auth-client";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -40,26 +40,26 @@ export default function AppLayout({
   description,
 }: Props) {
   const { data: sub } = useSubscriptionQuery();
-  const { user, isLoaded } = useUser();
+  const { data: session, isPending } = useSession();
   const router = useRouter();
   const { data: blogs, isLoading: blogsLoading } = useBlogsQuery({
     enabled: true,
   });
 
   useEffect(() => {
-    if (isLoaded && !user && !loading && !IS_DEV) {
+    if (!isPending && !session && !loading && !IS_DEV) {
       console.log("User not found. Redirecting to sign-in page.");
       router.push("/sign-in");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoaded, user, loading]);
+  }, [isPending, session, loading]);
 
   useEffect(() => {
-    if (user?.primaryEmailAddress?.emailAddress) {
-      console.log("Identifying user", user.primaryEmailAddress.emailAddress);
-      posthogIdentify({ email: user.primaryEmailAddress.emailAddress });
+    if (session?.user?.email) {
+      console.log("Identifying user", session.user.email);
+      posthogIdentify({ email: session.user.email });
     }
-  }, [user]);
+  }, [session]);
 
   const selectedBlog = blogs?.find((blog) => blog.id === router.query.blogId);
 

@@ -1,10 +1,10 @@
-import { useUser } from "@clerk/nextjs";
+import { useSession } from "@/lib/auth-client";
 import { PropsWithChildren } from "react";
 
 export function LoggedInUser({ children }: PropsWithChildren) {
-  const { user } = useUser();
+  const { data: session } = useSession();
 
-  if (!user) {
+  if (!session?.user) {
     return null;
   }
 

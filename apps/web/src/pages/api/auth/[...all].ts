@@ -1,9 +1,6 @@
 import { auth } from "@/lib/auth";
-import type { NextApiRequest, NextApiResponse } from "next";
+import { toNodeHandler } from "better-auth/node";
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  return auth.handler(req, res);
-}
+export const config = { api: { bodyParser: false } };
+
+export default toNodeHandler(auth.handler);

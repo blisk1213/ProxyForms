@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { db } from '@/db';
 import { posts, postTags, postAuthors } from '@/db/schema';
-import { getAuth } from '@clerk/nextjs/server';
+import { auth } from '@/lib/auth';
 
 export default async function handler(
   req: NextApiRequest,
@@ -11,7 +11,10 @@ export default async function handler(
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { userId } = getAuth(req);
+  const session = await auth.api.getSession({
+    headers: new Headers(req.headers as Record<string, string>),
+  });
+  const userId = session?.user.id;
   if (!userId) {
     return res.status(401).json({ error: 'Unauthorized' });
   }

@@ -4,14 +4,14 @@ import { ZendoLogo } from "../ZendoLogo";
 import Link from "next/link";
 import { FaBars, FaTwitter } from "react-icons/fa";
 import { Button } from "../ui/button";
-import { useUser } from "@clerk/nextjs";
+import { useSession } from "@/lib/auth-client";
 import { HiOutlineMenu, HiOutlineX } from "react-icons/hi";
 import { Drawer, DrawerContent } from "../ui/drawer";
 
 type Props = {};
 
 const Navigation = (props: Props) => {
-  const { user } = useUser();
+  const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
 
   const links = [
@@ -57,7 +57,7 @@ const Navigation = (props: Props) => {
 
       <div className="flex items-center justify-end gap-2">
         <div className="hidden md:block">
-          {user ? (
+          {session?.user ? (
             <div className="ml-2 flex w-full justify-end">
               <Button asChild variant={"secondary"} size="default">
                 <Link href="/blogs">Dashboard</Link>
@@ -96,7 +96,7 @@ const Navigation = (props: Props) => {
               </Link>
             ))}
             <div className="flex w-full flex-col gap-2 px-4">
-              {user ? (
+              {session?.user ? (
                 <Button
                   className="w-full"
                   asChild

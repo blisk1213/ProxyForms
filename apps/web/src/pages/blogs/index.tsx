@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { Button } from "@/components/ui/button";
 import { Plus, Settings } from "lucide-react";
-import { useUser } from "@clerk/nextjs";
+import { useSession } from "@/lib/auth-client";
 import { useState } from "react";
 import {
   Tooltip,
@@ -14,8 +14,8 @@ import {
 import { FaPencilAlt } from "react-icons/fa";
 
 export default function Dashboard() {
-  const { user } = useUser();
-  const { data, isLoading } = useBlogsQuery({ enabled: !!user });
+  const { data: session } = useSession();
+  const { data, isLoading } = useBlogsQuery({ enabled: !!session?.user });
   const router = useRouter();
   const [hovering, setHovering] = useState("");
 

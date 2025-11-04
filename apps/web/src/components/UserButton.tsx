@@ -7,14 +7,14 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import Link from "next/link";
-import { useUser } from "@clerk/nextjs";
+import { useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import { DoorClosed, DoorOpen, UserIcon } from "lucide-react";
 
 type Props = {};
 
 const UserButton = (props: Props) => {
-  const { user } = useUser();
+  const { data: session } = useSession();
 
   return (
     <>
@@ -25,14 +25,14 @@ const UserButton = (props: Props) => {
               "flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-b from-slate-700 to-slate-900 font-bold text-white transition-all hover:brightness-125"
             )}
           >
-            {user?.primaryEmailAddress?.emailAddress?.slice(0, 1).toUpperCase()}
+            {session?.user?.email?.slice(0, 1).toUpperCase()}
           </div>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem className="hover:bg-transparent">
             <div className="flex flex-col">
               <span className="text-xs text-zinc-400">Signed in as</span>
-              <span className="font-medium text-zinc-800">{user?.primaryEmailAddress?.emailAddress}</span>
+              <span className="font-medium text-zinc-800">{session?.user?.email}</span>
             </div>
           </DropdownMenuItem>
           <DropdownMenuSeparator />

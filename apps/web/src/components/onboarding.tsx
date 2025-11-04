@@ -12,17 +12,17 @@ import { useOnboardingMutation } from "@/queries/onboarding";
 import { CircleCheckIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { useRouter } from "next/router";
-import { useUser } from "@clerk/nextjs";
+import { useSession } from "@/lib/auth-client";
 
 export function OnboardingDropdown() {
   const router = useRouter();
   const currentBlogId = router.query.blogId as string;
-  const { user } = useUser();
+  const { data: session } = useSession();
 
   const items = getOnboardingItems(currentBlogId);
 
-  const { data, isLoading } = useOnboardingQuery(user?.id);
-  const { mutate: markAsDone } = useOnboardingMutation(user?.id || "");
+  const { data, isLoading } = useOnboardingQuery(session?.user?.id);
+  const { mutate: markAsDone } = useOnboardingMutation(session?.user?.id || "");
 
   const allAreDone = items.every((item) => (data as any)?.[item.id]);
 

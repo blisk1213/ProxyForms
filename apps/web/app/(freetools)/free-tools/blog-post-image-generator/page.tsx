@@ -108,6 +108,38 @@ export default function OGImageGenerator() {
     });
   }, []);
 
+  const generateImage = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // Set canvas size (Open Graph standard: 1200x630)
+    canvas.width = 1200;
+    canvas.height = 630;
+
+    // Get current theme configuration
+    const theme = getThemeById(selectedTheme);
+    if (!theme) return;
+
+    // Clear canvas with theme background
+    ctx.fillStyle = backgroundColor;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw the theme using the new system
+    drawTheme(ctx, theme, {
+      title,
+      description,
+      url,
+      logo,
+      selectedFont,
+      backgroundColor,
+      textColor,
+      styling: theme.styling,
+    });
+  }, [title, description, url, selectedTheme, backgroundColor, textColor, selectedFont, logo]);
+
   // Load Google Fonts and restore state from URL on component mount
   useEffect(() => {
     // Load all fonts at once for the dropdown
@@ -212,38 +244,6 @@ export default function OGImageGenerator() {
 
     redrawPreviews();
   }, [title, description, backgroundColor, textColor, selectedFont, isFontLoaded, logo, url]);
-
-  const generateImage = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    // Set canvas size (Open Graph standard: 1200x630)
-    canvas.width = 1200;
-    canvas.height = 630;
-
-    // Get current theme configuration
-    const theme = getThemeById(selectedTheme);
-    if (!theme) return;
-
-    // Clear canvas with theme background
-    ctx.fillStyle = backgroundColor;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Draw the theme using the new system
-    drawTheme(ctx, theme, {
-      title,
-      description,
-      url,
-      logo,
-      selectedFont,
-      backgroundColor,
-      textColor,
-      styling: theme.styling,
-    });
-  }, [title, description, url, selectedTheme, backgroundColor, textColor, selectedFont, logo]);
 
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
