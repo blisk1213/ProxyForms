@@ -13,9 +13,9 @@ export const env = createEnv({
     // Database (PostgreSQL with Drizzle ORM)
     DATABASE_URL: z.string().url(),
 
-    // Authentication (Clerk)
-    CLERK_SECRET_KEY: z.string().min(1),
-    CLERK_WEBHOOK_SECRET: z.string().min(1),
+    // Authentication (better-auth)
+    BETTER_AUTH_SECRET: z.string().min(32),
+    BETTER_AUTH_URL: z.string().url().optional(),
 
     // Payments (Stripe)
     STRIPE_SECRET_KEY: z.string().min(1),
@@ -59,12 +59,9 @@ export const env = createEnv({
     // Application URLs
     NEXT_PUBLIC_APP_URL: z.string().url(),
 
-    // Authentication (Clerk)
-    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1),
-    NEXT_PUBLIC_CLERK_SIGN_IN_URL: z.string().optional().default("/sign-in"),
-    NEXT_PUBLIC_CLERK_SIGN_UP_URL: z.string().optional().default("/sign-up"),
-    NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL: z.string().optional().default("/blogs"),
-    NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL: z.string().optional().default("/blogs"),
+    // Authentication URLs
+    NEXT_PUBLIC_SIGN_IN_URL: z.string().optional().default("/sign-in"),
+    NEXT_PUBLIC_SIGN_UP_URL: z.string().optional().default("/sign-up"),
 
     // Payments (Stripe)
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().min(1),
