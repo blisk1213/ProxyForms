@@ -15,12 +15,13 @@ cmds = [
 
 [phases.build]
 # Build packages and Next.js application using Turbo monorepo commands
+# Set SKIP_ENV_VALIDATION to skip env validation during build (runtime values provided at startup)
 cmds = [
   # Build packages first (monorepo)
   "bun run build:proxyforms",
 
-  # Build Next.js application (SKIP_ENV_VALIDATION set in [variables] section)
-  "bun run build:web"
+  # Build Next.js application with environment validation skipped
+  "SKIP_ENV_VALIDATION=1 bun run build:web"
 ]
 
 [start]

@@ -2,7 +2,16 @@
  * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
  * for Docker builds.
  */
-await import("./src/env.mjs");
+// During build phase, skip env validation if SKIP_ENV_VALIDATION is explicitly set
+// This allows building without runtime environment variables (provided at container startup)
+if (!process.env.SKIP_ENV_VALIDATION && process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL) {
+  process.env.SKIP_ENV_VALIDATION = '1';
+}
+
+// Only import and validate env if not skipping
+if (!process.env.SKIP_ENV_VALIDATION) {
+  await import("./src/env.mjs");
+}
 
 /** @type {import("next").NextConfig} */
 const config = {
