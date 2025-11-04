@@ -20,7 +20,7 @@ export const HttpApiExample = () => {
     {
       id: "fetch-posts",
       comment: "fetch posts to build blog homepage",
-      code: `const response = await fetch('https://api.zenblog.com/blogs/YOUR_BLOG_ID/posts');
+      code: `const response = await fetch('https://api.proxyforms.com/blogs/YOUR_BLOG_ID/posts');
 const { data: posts } = await response.json();`,
       browser: () => (
         <div>
@@ -44,7 +44,7 @@ const { data: posts } = await response.json();`,
     {
       id: "fetch-post",
       comment: "fetch a single post with its content",
-      code: `const response = await fetch('https://api.zenblog.com/blogs/YOUR_BLOG_ID/posts/post-slug');
+      code: `const response = await fetch('https://api.proxyforms.com/blogs/YOUR_BLOG_ID/posts/post-slug');
 const post = await response.json();`,
       browser: () => (
         <div>
@@ -63,7 +63,7 @@ const post = await response.json();`,
     {
       id: "fetch-filtered",
       comment: "fetch posts filtered by category or tags",
-      code: `const response = await fetch('https://api.zenblog.com/blogs/YOUR_BLOG_ID/posts?category=news&limit=10');
+      code: `const response = await fetch('https://api.proxyforms.com/blogs/YOUR_BLOG_ID/posts?category=news&limit=10');
 const { data: posts } = await response.json();`,
       browser: () => (
         <div>

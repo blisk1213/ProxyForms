@@ -66,8 +66,8 @@ export function InstrumentHome({ posts, blog, disableLinks }: BlogHomeProps) {
           <footer className="mt-6 border-t border-zinc-800 p-6">
             <p className="font-mono italic text-zinc-300">
               Powered by{" "}
-              <a className="underline" href="https://zenblog.com">
-                zenblog
+              <a className="underline" href="https://proxyforms.com">
+                proxyforms
               </a>
             </p>
           </footer>

@@ -9,12 +9,9 @@ import {
   FaPencilAlt,
   FaRocket,
 } from "react-icons/fa";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import Footer from "@/components/Footer";
-import { createSupabaseBrowserClient } from "@/lib/supabase";
 import Image from "next/image";
 import {
   Accordion,
@@ -85,21 +82,21 @@ const Home = () => {
   return (
     <>
       <Head>
-        <title>Zenblog - A tiny blogging CMS</title>
+        <title>ProxyForms - A tiny blogging CMS</title>
         <meta name="description" content="Simple, headless, blogging CMS." />
         <link rel="icon" href="/static/favicon.ico" />
-        <meta property="og:url" content="https://www.zenblog.com/" />
+        <meta property="og:url" content="https://www.proxyforms.com/" />
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="Zenblog" />
+        <meta property="og:title" content="ProxyForms" />
         <meta
           property="og:description"
           content="Simple, headless, blogging CMS."
         />
         <meta property="og:image" content="/static/og.jpg" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta property="twitter:domain" content="zenblog.com" />
-        <meta property="twitter:url" content="https://www.zenblog.com/" />
-        <meta name="twitter:title" content="Zenblog" />
+        <meta property="twitter:domain" content="proxyforms.com" />
+        <meta property="twitter:url" content="https://www.proxyforms.com/" />
+        <meta name="twitter:title" content="ProxyForms" />
         <meta
           name="twitter:description"
           content="Simple, headless, blogging CMS."
@@ -121,7 +118,7 @@ const Home = () => {
 
               <div className="mt-4 text-slate-500">
                 <p className="max-w-2xl text-balance text-lg font-medium">
-                  Zenblog is a headless CMS with Notion-style editor, hosted
+                  ProxyForms is a headless CMS with Notion-style editor, hosted
                   image and video uploads, and a type-safe API client.
                 </p>
                 <div className="mt-5 flex items-center gap-4">
@@ -137,11 +134,11 @@ const Home = () => {
                   <button
                     className="cursor-copy rounded-lg px-3 py-1.5 text-sm text-slate-600 transition-all hover:bg-slate-100"
                     onClick={() => {
-                      navigator.clipboard.writeText("npm i zenblog");
+                      navigator.clipboard.writeText("npm i proxyforms");
                       toast.success("Copied to clipboard");
                     }}
                   >
-                    <code>npm i zenblog</code>
+                    <code>npm i proxyforms</code>
                   </button>
                 </div>
               </div>
@@ -159,7 +156,7 @@ const Home = () => {
                 love it
               </h2>
               <p className="mb-6 text-slate-500">
-                What people say about zenblog.
+                What people say about ProxyForms.
               </p>
 
               {tweets.map((tweet) => (
@@ -169,7 +166,7 @@ const Home = () => {
 
             <div className="mx-auto mt-24 max-w-4xl pt-24">
               <h2 className="text-center text-2xl font-medium">
-                Why should you use Zenblog?
+                Why should you use ProxyForms?
               </h2>
               <p className="mx-auto mt-2 max-w-xl text-center text-slate-500">
                 Every feature developers love.
@@ -197,19 +194,19 @@ const Home = () => {
               <div className="mx-auto mt-8 max-w-4xl space-y-12">
                 {[
                   {
-                    id: "zenbloghq/nextjs",
-                    name: "Zenblog, Next.js, Tailwind CSS, TypeScript",
-                    link: "https://github.com/zenbloghq/nextjs",
-                    demo: "https://zenblog-nextjs-template.vercel.app/blog",
-                    desc: "Next.js Zenblog example with Tailwind CSS and TypeScript",
+                    id: "proxyforms/nextjs",
+                    name: "ProxyForms, Next.js, Tailwind CSS, TypeScript",
+                    link: "https://github.com/proxyforms/nextjs",
+                    demo: "https://proxyforms-nextjs-template.vercel.app/blog",
+                    desc: "Next.js ProxyForms example with Tailwind CSS and TypeScript",
                     image: "/static/zenblog-nextjs-template.webp",
                   },
                   // {
-                  //   id: "zenbloghq/astro",
-                  //   name: "Zenblog, Astro, Tailwind CSS, TypeScript",
-                  //   link: "https://github.com/zenbloghq/astro",
-                  //   demo: "https://zenblog-astro-template.vercel.app/blog",
-                  //   desc: "Astro Zenblog example with Tailwind CSS and TypeScript",
+                  //   id: "proxyforms/astro",
+                  //   name: "ProxyForms, Astro, Tailwind CSS, TypeScript",
+                  //   link: "https://github.com/proxyforms/astro",
+                  //   demo: "https://proxyforms-astro-template.vercel.app/blog",
+                  //   desc: "Astro ProxyForms example with Tailwind CSS and TypeScript",
                   //   image: "/static/zenblog-astro-template.webp",
                   // },
                 ].map((fw) => (
@@ -262,10 +259,10 @@ const Home = () => {
                   type="multiple"
                   className="divide-y rounded-xl border bg-slate-100/50 *:px-4 [&_div]:text-lg"
                 >
-                  <AccordionItem value="zenblog">
-                    <AccordionTrigger>What is zenblog?</AccordionTrigger>
+                  <AccordionItem value="proxyforms">
+                    <AccordionTrigger>What is ProxyForms?</AccordionTrigger>
                     <AccordionContent className="text-lg">
-                      Zenblog is a simple, headless blogging CMS. You can use it
+                      ProxyForms (formerly Zenblog) is a simple, headless blogging CMS. You can use it
                       to manage your own blog, build blogs for your clients, use
                       it to manage content in a website like a blog, job
                       postings, a changelog, docs, help center, etc.
@@ -276,8 +273,8 @@ const Home = () => {
                       What does headless mean?
                     </AccordionTrigger>
                     <AccordionContent>
-                      Headless means that zenblog will work with any stack you
-                      have. You just have to fetch your content with the zenblog
+                      Headless means that ProxyForms will work with any stack you
+                      have. You just have to fetch your content with the ProxyForms
                       API and display it on your website however you want.
                     </AccordionContent>
                   </AccordionItem>
@@ -287,7 +284,7 @@ const Home = () => {
                     </AccordionTrigger>
                     <AccordionContent>
                       Yes, you should use a backend server to fetch your content
-                      from zenblog and cache it. This will protect your blog id
+                      from ProxyForms and cache it. This will protect your blog id
                       and make your website faster and SEO friendly.
                     </AccordionContent>
                   </AccordionItem>

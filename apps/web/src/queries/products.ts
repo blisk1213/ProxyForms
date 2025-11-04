@@ -1,19 +1,13 @@
-import { createSupabaseBrowserClient } from "@/lib/supabase";
+import { db } from "@/db";
+import { products } from "@/db/schema";
 import { useQuery } from "@tanstack/react-query";
 import Stripe from "stripe";
 
 export function useProductsQuery() {
-  const sb = createSupabaseBrowserClient();
-
   return useQuery({
     queryKey: ["products"],
     queryFn: async () => {
-      const { data, error } = await sb.from("products").select("*");
-
-      if (error) {
-        console.error(error);
-        throw error;
-      }
+      const data = await db.select().from(products);
 
       type DataItemType = (typeof data)[0] & { product: Stripe.Product };
 

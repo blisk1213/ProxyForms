@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -87,7 +87,7 @@ export default function OGImageGenerator() {
   };
 
   // Helper function to check if a font is loaded
-  const isFontLoaded = (fontName: string): Promise<boolean> => {
+  const isFontLoaded = useCallback((fontName: string): Promise<boolean> => {
     return new Promise((resolve) => {
       if (document.fonts && document.fonts.check) {
         // Modern browsers support document.fonts.check
@@ -106,7 +106,7 @@ export default function OGImageGenerator() {
         resolve(true);
       }
     });
-  };
+  }, []);
 
   // Load Google Fonts and restore state from URL on component mount
   useEffect(() => {
@@ -151,7 +151,7 @@ export default function OGImageGenerator() {
     };
 
     redrawCanvas();
-  }, [selectedFont]);
+  }, [selectedFont, isFontLoaded]);
 
   // Generate canvas image when any theming option changes
   useEffect(() => {
@@ -172,6 +172,7 @@ export default function OGImageGenerator() {
     textColor,
     selectedFont,
     logo,
+    generateImage,
   ]);
 
   // Redraw theme previews when content changes
@@ -210,9 +211,9 @@ export default function OGImageGenerator() {
     };
 
     redrawPreviews();
-  }, [title, description, backgroundColor, textColor, selectedFont]);
+  }, [title, description, backgroundColor, textColor, selectedFont, isFontLoaded, logo, url]);
 
-  const generateImage = () => {
+  const generateImage = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -242,7 +243,7 @@ export default function OGImageGenerator() {
       textColor,
       styling: theme.styling,
     });
-  };
+  }, [title, description, url, selectedTheme, backgroundColor, textColor, selectedFont, logo]);
 
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

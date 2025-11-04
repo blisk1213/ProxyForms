@@ -2,7 +2,7 @@ import { Context } from "hono";
 import { StatusCode } from "hono/utils/http-status";
 import { axiom, AXIOM_DATASETS } from "lib/axiom";
 
-const ERROR_TABLE = "zenblog-errors";
+const ERROR_TABLE = "proxyforms-errors";
 
 type ErrorItem = {
   message: string;
@@ -20,13 +20,14 @@ const ERROR_MAP: Record<string, ErrorItem> = {
 
 export const throwError = (ctx: Context, error: keyof typeof ERROR_MAP) => {
   console.log(`🔴 ${ERROR_MAP[error]?.message}`);
+  const errorItem = ERROR_MAP[error];
   axiom.ingest(AXIOM_DATASETS.api, {
-    error: ERROR_MAP[error]?.message,
+    error: errorItem?.message,
     request: ctx.req,
-    status: ERROR_MAP[error]?.status,
+    status: errorItem?.status,
   });
   return ctx.json(
-    { message: ERROR_MAP[error]?.message },
-    ERROR_MAP[error]?.status
+    { message: errorItem?.message },
+    errorItem?.status as any
   );
 };

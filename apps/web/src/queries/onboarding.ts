@@ -1,6 +1,7 @@
-import { createSupabaseBrowserClient } from "@/lib/supabase";
+import { db, onboardingSteps } from "@/db";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { eq } from "drizzle-orm";
 
 export const onboardingKeys = ["onboarding_steps"];
 
@@ -29,46 +30,67 @@ type OnboardingSteps = {
   has_integrated_api: boolean;
 };
 
-export const useOnboardingQuery = () => {
-  const sb = createSupabaseBrowserClient();
-
+export const useOnboardingQuery = (userId: string | undefined) => {
   return useQuery({
     queryKey: onboardingKeys,
     queryFn: async () => {
-      const { data } = await sb
-        .from("onboarding_steps")
-        .select("has_blog, has_published_post, has_integrated_api")
-        .limit(1)
-        .throwOnError();
+      if (!userId) {
+        return {
+          hasBlog: false,
+          hasPublishedPost: false,
+          hasIntegratedApi: false,
+        };
+      }
+
+      const data = await db
+        .select({
+          hasBlog: onboardingSteps.hasBlog,
+          hasPublishedPost: onboardingSteps.hasPublishedPost,
+          hasIntegratedApi: onboardingSteps.hasIntegratedApi,
+        })
+        .from(onboardingSteps)
+        .where(eq(onboardingSteps.userId, userId))
+        .limit(1);
 
       return (
         data?.[0] || {
-          has_blog: false,
-          has_published_post: false,
-          has_integrated_api: false,
+          hasBlog: false,
+          hasPublishedPost: false,
+          hasIntegratedApi: false,
         }
       );
     },
+    enabled: !!userId,
   });
 };
 
-export const useOnboardingMutation = () => {
-  const sb = createSupabaseBrowserClient();
+export const useOnboardingMutation = (userId: string | undefined) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (step: keyof OnboardingSteps) => {
-      const { data } = await sb.auth.getUser();
-      if (!data.user?.id) return;
-      await sb
-        .from("onboarding_steps")
-        .upsert(
-          { [step]: true, user_id: data.user.id },
-          {
-            onConflict: "user_id",
-          }
-        )
-        .eq("user_id", data.user.id)
-        .throwOnError();
+      if (!userId) return;
+
+      // Map the step to the correct column name
+      const columnMap = {
+        has_blog: 'hasBlog',
+        has_published_post: 'hasPublishedPost',
+        has_integrated_api: 'hasIntegratedApi',
+      } as const;
+
+      const mappedStep = columnMap[step] as keyof typeof onboardingSteps.$inferInsert;
+
+      await db
+        .insert(onboardingSteps)
+        .values({
+          userId,
+          [mappedStep]: true,
+        })
+        .onConflictDoUpdate({
+          target: onboardingSteps.userId,
+          set: {
+            [mappedStep]: true,
+          },
+        });
     },
     onSuccess: () => {
       toast.success("Onboarding step completed");

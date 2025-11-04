@@ -1,10 +1,8 @@
-import { createSupabaseBrowserClient } from "@/lib/supabase";
-import { useUser } from "@/utils/supabase/browser";
+import { useUser } from "@clerk/nextjs";
 import { PropsWithChildren } from "react";
 
 export function LoggedInUser({ children }: PropsWithChildren) {
-  const sb = createSupabaseBrowserClient();
-  const user = useUser();
+  const { user } = useUser();
 
   if (!user) {
     return null;

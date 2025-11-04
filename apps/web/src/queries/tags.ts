@@ -1,5 +1,6 @@
-import { createSupabaseBrowserClient } from "@/lib/supabase";
+import { db, tags, postTags } from "@/db";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { eq, and, sql } from "drizzle-orm";
 
 export const tagKeys = {
   tags: (blogId: string) => ["tags", blogId],
@@ -15,16 +16,25 @@ export function useTagsWithUsageQuery(
     enabled: boolean;
   }
 ) {
-  const supa = createSupabaseBrowserClient();
-
   return useQuery({
     queryKey: tagKeys.tags(blogId),
     enabled: !!blogId && enabled,
     queryFn: async () => {
-      const { data } = await supa
-        .from("tag_usage_count_v2")
-        .select("*")
-        .eq("blog_id", blogId);
+      // Query tags with post count
+      const data = await db
+        .select({
+          tag_id: tags.id,
+          blog_id: tags.blogId,
+          tag_name: tags.name,
+          slug: tags.slug,
+          created_at: tags.createdAt,
+          updated_at: tags.updatedAt,
+          post_count: sql<number>`count(${postTags.id})`.as('post_count'),
+        })
+        .from(tags)
+        .leftJoin(postTags, eq(postTags.tagId, tags.id))
+        .where(eq(tags.blogId, blogId))
+        .groupBy(tags.id, tags.blogId, tags.name, tags.slug, tags.createdAt, tags.updatedAt);
 
       return data;
     },
@@ -33,21 +43,12 @@ export function useTagsWithUsageQuery(
 
 export function useDeleteTagMutation(blogId: string) {
   const queryClient = useQueryClient();
-  const supa = createSupabaseBrowserClient();
 
   return useMutation({
     mutationFn: async (tagId: string) => {
-      const res = await supa
-        .from("tags")
-        .delete()
-        .eq("id", tagId)
-        .eq("blog_id", blogId);
-
-      if (res.error) {
-        throw new Error(res.error.message);
-      }
-
-      return res;
+      await db
+        .delete(tags)
+        .where(and(eq(tags.id, tagId), eq(tags.blogId, blogId)));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: tagKeys.tags(blogId) });
@@ -57,17 +58,17 @@ export function useDeleteTagMutation(blogId: string) {
 
 export function useUpdateTagMutation(blogId: string) {
   const queryClient = useQueryClient();
-  const supa = createSupabaseBrowserClient();
 
   return useMutation({
     mutationFn: async (tag: { id: string; name: string; slug: string }) => {
-      const res = await supa.from("tags").update(tag).eq("id", tag.id);
-
-      if (res.error) {
-        throw new Error(res.error.message);
-      }
-
-      return res;
+      await db
+        .update(tags)
+        .set({
+          name: tag.name,
+          slug: tag.slug,
+          updatedAt: sql`now()`,
+        })
+        .where(eq(tags.id, tag.id));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: tagKeys.tags(blogId) });
@@ -82,17 +83,21 @@ export function usePostTags({
   post_id: string;
   blog_id: string;
 }) {
-  const supa = createSupabaseBrowserClient();
-
   return useQuery({
     queryKey: tagKeys.postTags(post_id),
     enabled: !!post_id && !!blog_id,
     queryFn: async () => {
-      const { data } = await supa
-        .from("post_tags")
-        .select("tags(id, name, slug)")
-        .eq("post_id", post_id)
-        .eq("tags.blog_id", blog_id);
+      const data = await db
+        .select({
+          tags: {
+            id: tags.id,
+            name: tags.name,
+            slug: tags.slug,
+          },
+        })
+        .from(postTags)
+        .innerJoin(tags, eq(postTags.tagId, tags.id))
+        .where(and(eq(postTags.postId, post_id), eq(tags.blogId, blog_id)));
 
       return data;
     },

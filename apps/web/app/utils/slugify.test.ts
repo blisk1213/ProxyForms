@@ -6,5 +6,5 @@ test("slugify", () => {
   expect(slugify("John Doe 123")).toBe("john-doe-123");
   expect(slugify("John Doe 123!")).toBe("john-doe-123");
   expect(slugify("John Doe 123!@#$%^&*()")).toBe("john-doe-123");
-  expect(slugify("jordi/hola/quepasa")).toBe("jordi-hola-quepasa");
+  expect(slugify("hello/world/test")).toBe("hello-world-test");
 });

@@ -5,7 +5,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ImageIcon, MoreHorizontal, Plus, Trash } from "lucide-react";
-import { createSupabaseBrowserClient } from "@/lib/supabase";
 import { toast } from "sonner";
 import { usePostsQuery } from "@/queries/posts";
 import { useBlogQuery } from "@/queries/blogs";
@@ -65,17 +64,20 @@ export default function BlogPosts() {
 
   const isLoading = blogLoading || postsLoading;
 
-  const supabase = createSupabaseBrowserClient();
   const queryClient = useQueryClient();
 
   const deletePostMutation = useMutation({
     mutationFn: async (postSlug: string) => {
-      const { data, error } = await supabase
-        .from("posts")
-        .delete()
-        .eq("slug", postSlug);
+      const response = await fetch("/api/posts/delete", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ postSlug }),
+      });
 
-      if (error) {
+      if (!response.ok) {
+        const error = await response.json();
         throw error;
       }
     },
@@ -153,7 +155,7 @@ export default function BlogPosts() {
                   key={post?.slug}
                   post={post}
                   blogId={blogId}
-                  authors={getAuthorsByIds(post?.authors || [])}
+                  authors={getAuthorsByIds((post as any)?.authors || [])}
                   onDeleteClick={async () => {
                     const confirmed = window.confirm(
                       "Are you sure you want to delete this post?"
@@ -199,7 +201,7 @@ function PostItem({
   post: any;
   blogId: string;
   onDeleteClick: () => void;
-  authors: { slug: string; name: string; image_url: string | null }[];
+  authors: { slug: string; name: string; imageUrl: string | null }[];
 }) {
   return (
     <Link
@@ -256,9 +258,9 @@ function PostItem({
                     key={author.slug}
                     className="flex items-center gap-1 text-xs font-medium text-zinc-500"
                   >
-                    {author.image_url ? (
+                    {author.imageUrl ? (
                       <img
-                        src={author.image_url || ""}
+                        src={author.imageUrl || ""}
                         alt={author.name}
                         width={32}
                         height={32}

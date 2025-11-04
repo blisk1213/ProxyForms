@@ -69,7 +69,7 @@ export function CreateCategoryDialog({
               await createCategory.mutateAsync({
                 name,
                 slug,
-                blog_id: blogId,
+                blogId: blogId,
               });
               toast.success("Category created");
               setOpen(false);
@@ -251,7 +251,7 @@ export default function CategoriesPage() {
             onOpenChange={setDeleteCategoryOpen}
             onConfirm={() => {
               if (!selectedCategory?.category_id) return;
-              deleteCategory.mutate(selectedCategory.category_id.toString());
+              deleteCategory.mutate(selectedCategory.category_id);
               toast.success("Category deleted");
               setDeleteCategoryOpen(false);
             }}

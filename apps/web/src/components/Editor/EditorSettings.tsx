@@ -168,7 +168,7 @@ const EditorSettings = (props: Props) => {
                   createCategory({
                     name: name as string,
                     slug: slug as string,
-                    blog_id: blogId,
+                    blogId: blogId,
                   });
                   toast.success("Category created");
                 }}

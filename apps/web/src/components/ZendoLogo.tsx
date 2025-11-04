@@ -19,9 +19,9 @@ export function ZendoLogo(props: Props) {
         src="/static/logo.svg"
         width={props.size || 27}
         height={props.size || 27}
-        alt="Zenblog logotype"
+        alt="ProxyForms logotype"
       />
-      {!props.hideText && "zenblog"}
+      {!props.hideText && "proxyforms"}
     </div>
   );
 }

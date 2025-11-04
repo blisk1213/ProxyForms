@@ -117,7 +117,7 @@ export const TagManagement = (props: Props) => {
           <></>
         ) : (
           <div className="mt-2 grid grid-cols-3 gap-2">
-            {tags.data?.map((tag) => (
+            {tags.data?.map((tag: any) => (
               <label
                 className="inline-flex items-center gap-1.5 rounded-lg border border-transparent px-2 py-1 transition-all hover:bg-zinc-100 has-[:checked]:border-orange-300 has-[:checked]:bg-orange-50"
                 key={tag.id}
@@ -125,7 +125,7 @@ export const TagManagement = (props: Props) => {
                 <input
                   onChange={(e) => {
                     if (e.target.checked) {
-                      handleTagChange([...selectedTags, tag]);
+                      handleTagChange([...selectedTags, tag as Tag]);
                     } else {
                       handleTagChange(
                         selectedTags.filter((t) => t.id !== tag.id)

@@ -23,13 +23,13 @@ const ReactComponents = (props: Props) => {
       <div className="mb-4 flex w-full flex-col gap-2 md:flex-row">
         <CodeBlock title="pages/blog.tsx" language="tsx">
           {`
-  import { PostList } from "zenblog/ui";
-  import { createZenblogClient } from "zenblog/client";
+  import { PostList } from "proxyforms/ui";
+  import { createProxyFormsClient } from "proxyforms/client";
 
   const Blog = () => {
 
-    const client = createZenblogClient({
-      blogId: env.ZENBLOG_BLOG_ID,
+    const client = createProxyFormsClient({
+      blogId: env.PROXYFORMS_BLOG_ID,
     })
 
     return (

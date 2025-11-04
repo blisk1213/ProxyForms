@@ -1,8 +1,8 @@
-import { createZenblogClient } from "zenblog";
+import { createProxyFormsClient } from "proxyforms";
 
 export const getBlogClient = () => {
-  const blog = createZenblogClient({
-    blogId: process.env.ZENBLOG_BLOG_ID || "",
+  const blog = createProxyFormsClient({
+    blogId: process.env.PROXYFORMS_BLOG_ID || process.env.ZENBLOG_BLOG_ID || "",
     _url: process.env.NEXT_PUBLIC_API_URL + "/public",
     _debug: true,
   });

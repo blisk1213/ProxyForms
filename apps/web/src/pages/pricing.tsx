@@ -19,7 +19,7 @@ export default function Pricing() {
   return (
     <div>
       <Head>
-        <title>Zenblog - Pricing</title>
+        <title>ProxyForms - Pricing</title>
         <meta name="description" content="Simple, headless, blogging CMS." />
         <link rel="icon" href="/static/favicon.ico" />
       </Head>
@@ -66,14 +66,14 @@ export default function Pricing() {
         <Section className="mt-24 px-4 py-4">
           <h2 className="text-xl font-medium">FAQ</h2>
           <p className="mt-2 text-slate-500">
-            Frequently asked questions about Zenblog pricing.
+            Frequently asked questions about ProxyForms pricing.
           </p>
           <FAQItem
             question="What is your refund policy?"
             answer={
               <>
                 You can request a refund within 14 days of your initial purchase
-                or renewal date. Email us at support@zenblog.com with your
+                or renewal date. Email us at support@proxyforms.com with your
                 account details and reason for the refund request.
                 <br />
                 <Link className="underline" href="/terms">
@@ -88,7 +88,7 @@ export default function Pricing() {
           />
           <FAQItem
             question="Do you offer discounts for non-profits or educational institutions?"
-            answer="Yes, we do. Please contact us at support@zenblog.com for more information."
+            answer="Yes, we do. Please contact us at support@proxyforms.com for more information."
           />
         </Section>
       </main>

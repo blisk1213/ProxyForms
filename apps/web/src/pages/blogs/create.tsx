@@ -35,29 +35,30 @@ export default function CreateBlog() {
 
   const onSubmit = async (data: FormData) => {
     setSubmitting(true);
-    const res = await createBlog.mutateAsync({
-      title: data.title,
-      description: data.description || "",
-      emoji: DEFAULT_EMOJI,
-    });
+    try {
+      const res = await createBlog.mutateAsync({
+        title: data.title,
+        description: data.description || "",
+        emoji: DEFAULT_EMOJI,
+      });
 
-    if (res.error) {
-      if (res.error.code === "23505") {
-        toast.error("Slug already exists. Please choose another slug");
-        document.getElementById("slug-input")?.focus();
-        return;
+      if (res?.error) {
+        const error = res.error as any;
+        if (error?.code === "23505") {
+          toast.error("Slug already exists. Please choose another slug");
+          document.getElementById("slug-input")?.focus();
+          return;
+        }
       }
-    }
 
-    if (res?.data?.id) {
-      await router.push(`/blogs/${res.data.id}/posts`);
-    }
-
-    setSubmitting(false);
-
-    if (createBlog.isError) {
-      console.error(createBlog.error);
-      alert("Error creating blog, please try again");
+      if (res?.data?.id) {
+        await router.push(`/blogs/${res.data.id}/posts`);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Error creating blog, please try again");
+    } finally {
+      setSubmitting(false);
     }
   };
 

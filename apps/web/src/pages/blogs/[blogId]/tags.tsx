@@ -123,17 +123,18 @@ export default function TagsPage() {
           tag={selectedTag}
           onSubmit={async (newTag) => {
             if (!newTag.tag_id) return;
-            const res = await updateTagMutation.mutateAsync({
-              name: newTag.tag_name,
-              slug: newTag.slug,
-              id: newTag.tag_id,
-            });
-            if (res.error) {
+            try {
+              await updateTagMutation.mutateAsync({
+                name: newTag.tag_name,
+                slug: newTag.slug,
+                id: newTag.tag_id,
+              });
+              setUpdateTagDialogOpen(false);
+              toast.success("Tag updated");
+            } catch (error) {
+              console.error('Failed to update tag:', error);
               toast.error("Failed to update tag");
-              return;
             }
-            setUpdateTagDialogOpen(false);
-            toast.success("Tag updated");
           }}
           open={updateTagDialogOpen}
           onOpenChange={setUpdateTagDialogOpen}
@@ -146,14 +147,14 @@ export default function TagsPage() {
           onConfirm={async () => {
             if (!selectedTag?.tag_id) return;
 
-            const res = await deleteTagMutation.mutateAsync(selectedTag.tag_id);
-
-            if (res.error) {
+            try {
+              await deleteTagMutation.mutateAsync(selectedTag.tag_id);
+              setDeleteTagDialogOpen(false);
+              toast.success("Tag deleted");
+            } catch (error) {
+              console.error('Failed to delete tag:', error);
               toast.error("Failed to delete tag");
-              return;
             }
-            setDeleteTagDialogOpen(false);
-            toast.success("Tag deleted");
           }}
         />
       </Section>

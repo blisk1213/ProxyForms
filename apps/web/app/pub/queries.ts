@@ -11,7 +11,20 @@ export async function getBlog(subdomain: string) {
     .eq("slug", subdomain)
     .single();
 
-  return res;
+  return res as {
+    data: {
+      id: string;
+      title: string;
+      emoji: string;
+      description: string;
+      order: string;
+      theme: string;
+      twitter: string | null;
+      instagram: string | null;
+      website: string | null;
+    } | null;
+    error: any;
+  };
 }
 
 export async function getPosts(subdomain: string, sort: string = "desc") {
@@ -45,5 +58,11 @@ export async function getPost(subdomain: string, slug: string) {
     .eq("blog_slug", subdomain)
     .single();
 
-  return post;
+  return post as {
+    title: string | null;
+    cover_image: string | null;
+    published_at: string | null;
+    created_at: string | null;
+    html_content: string | null;
+  } | null;
 }

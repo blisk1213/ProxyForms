@@ -53,7 +53,7 @@ const Footer = (props: Props) => {
             <li>
               <Link
                 className="flex items-center gap-1 px-1"
-                href="https://twitter.com/zenbloghq"
+                href="https://twitter.com/proxyforms"
               >
                 <IoLogoTwitter size="18" />
                 Twitter

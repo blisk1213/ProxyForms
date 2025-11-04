@@ -2,27 +2,27 @@
  * Checks if the code examples are valid with typescript
  */
 
-import { createZenblogClient } from "zenblog";
+import { createProxyFormsClient } from "proxyforms";
 
-const zenblog = createZenblogClient({
+const proxyforms = createProxyFormsClient({
   blogId: "doesnt-matter",
 });
 
-const posts = await zenblog.posts.list({
+const posts = await proxyforms.posts.list({
   limit: 100,
   offset: 0,
   tags: ["tag1", "tag2"],
   category: "category-slug",
   author: "author-slug",
 });
-const postsBySlug = await zenblog.posts.get({
+const postsBySlug = await proxyforms.posts.get({
   slug: "slug",
 });
 
-const categories = await zenblog.categories.list();
-const tags = await zenblog.tags.list();
-const authors = await zenblog.authors.list();
-const authorBySlug = await zenblog.authors.get({
+const categories = await proxyforms.categories.list();
+const tags = await proxyforms.tags.list();
+const authors = await proxyforms.authors.list();
+const authorBySlug = await proxyforms.authors.get({
   slug: "slug",
 });
 

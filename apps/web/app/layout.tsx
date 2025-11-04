@@ -4,13 +4,13 @@ import PlausibleProvider from "next-plausible";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 export const metadata = {
-  title: "Zenblog blog",
+  title: "ProxyForms blog",
   description: "A simple headless blogging CMS",
   icons: {
     icon: "/static/favicon.ico",
   },
   openGraph: {
-    title: "Zenblog blog",
+    title: "ProxyForms blog",
     description: "A simple headless blogging CMS",
     images: "/static/og.jpg",
   },
@@ -37,7 +37,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <PlausibleProvider domain="zenblog.com" />
+        <PlausibleProvider domain="proxyforms.com" />
         <meta
           name="viewport"
           content="width=device-width, initial-scale=1, maximum-scale=1"

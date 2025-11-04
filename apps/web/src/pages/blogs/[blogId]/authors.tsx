@@ -338,9 +338,9 @@ export function AuthorsPage() {
             {authors?.map((author) => (
               <TableRow key={author.id}>
                 <TableCell>
-                  {author.image_url ? (
+                  {author.imageUrl ? (
                     <img
-                      src={author.image_url}
+                      src={author.imageUrl}
                       alt={author.name}
                       width={40}
                       height={40}

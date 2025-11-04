@@ -1,32 +1,41 @@
-import { createSupabaseBrowserClient } from "@/lib/supabase";
+import { db } from "@/db";
+import { categories } from "@/db/schema/categories";
+import { posts } from "@/db/schema/posts";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-
-const sb = createSupabaseBrowserClient();
+import { eq, and, count, sql } from "drizzle-orm";
 
 const keys = {
   list: ["categories", "categories-with-post-count"],
 };
 
 type Category = {
-  id: string;
+  id: number;
   slug: string;
   name: string;
-  created_at: string;
-  blog_id: string;
+  createdAt: string;
+  blogId: string;
 };
 
 export function useCategoriesWithPostCount(blogId: string) {
   return useQuery({
     queryKey: keys.list,
-    queryFn: async () =>
-      await sb
-        .from("category_post_count")
-        .select(
-          "category_id, category_name, category_slug, post_count, created_at"
-        )
-        .eq("blog_id", blogId)
-        .throwOnError(),
+    queryFn: async () => {
+      const result = await db
+        .select({
+          category_id: categories.id,
+          category_name: categories.name,
+          category_slug: categories.slug,
+          post_count: sql<number>`cast(count(${posts.id}) as int)`,
+          created_at: categories.createdAt,
+        })
+        .from(categories)
+        .leftJoin(posts, eq(categories.id, posts.categoryId))
+        .where(eq(categories.blogId, blogId))
+        .groupBy(categories.id, categories.name, categories.slug, categories.createdAt);
+
+      return { data: result, error: null };
+    },
   });
 }
 
@@ -34,14 +43,16 @@ export function useCategories(blogId: string) {
   return useQuery({
     queryKey: keys.list,
     queryFn: async () => {
-      const { data, error } = await sb
-        .from("categories")
-        .select("id, slug, name, created_at")
-        .eq("blog_id", blogId)
-        .throwOnError();
-      if (error) {
-        throw error;
-      }
+      const data = await db
+        .select({
+          id: categories.id,
+          slug: categories.slug,
+          name: categories.name,
+          created_at: categories.createdAt,
+        })
+        .from(categories)
+        .where(eq(categories.blogId, blogId));
+
       return data;
     },
   });
@@ -50,8 +61,13 @@ export function useCategories(blogId: string) {
 export function useCreateCategory() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (category: Omit<Category, "id" | "created_at">) =>
-      await sb.from("categories").insert(category).throwOnError(),
+    mutationFn: async (category: Omit<Category, "id" | "createdAt">) => {
+      await db.insert(categories).values({
+        blogId: category.blogId,
+        name: category.name,
+        slug: category.slug,
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: keys.list });
     },
@@ -60,18 +76,17 @@ export function useCreateCategory() {
 
 export function useDeleteCategoryMutation(blogId: string) {
   const queryClient = useQueryClient();
-  const supa = createSupabaseBrowserClient();
 
   return useMutation({
-    mutationFn: async (categoryId: string) => {
-      const res = await supa
-        .from("categories")
-        .delete()
-        .eq("id", categoryId)
-        .eq("blog_id", blogId)
-        .throwOnError();
-
-      return res;
+    mutationFn: async (categoryId: number) => {
+      await db
+        .delete(categories)
+        .where(
+          and(
+            eq(categories.id, categoryId),
+            eq(categories.blogId, blogId)
+          )
+        );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -87,7 +102,6 @@ export function useDeleteCategoryMutation(blogId: string) {
 
 export function useUpdateCategoryMutation() {
   const queryClient = useQueryClient();
-  const supa = createSupabaseBrowserClient();
 
   return useMutation({
     mutationFn: async (category: {
@@ -95,13 +109,13 @@ export function useUpdateCategoryMutation() {
       name: string;
       slug: string;
     }) => {
-      const res = await supa
-        .from("categories")
-        .update(category)
-        .eq("id", category.id)
-        .throwOnError();
-
-      return res;
+      await db
+        .update(categories)
+        .set({
+          name: category.name,
+          slug: category.slug,
+        })
+        .where(eq(categories.id, category.id));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({

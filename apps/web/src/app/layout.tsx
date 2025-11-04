@@ -1,11 +1,18 @@
-import type React from "react";
 import type { Metadata } from "next";
+import {
+  ClerkProvider,
+  SignInButton,
+  SignUpButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+} from "@clerk/nextjs";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Zenblog - Create Free Beautiful Blog Post Images",
+  title: "ProxyForms - Headless CMS for Blogging",
   description:
-    "Generate stunning Open Graph images for your blog posts with customizable templates, colors, and fonts.",
+    "Simple, fast, headless blogging CMS with powerful content management.",
 };
 
 export default function RootLayout({
@@ -13,5 +20,22 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <div>{children}</div>;
+  return (
+    <ClerkProvider>
+      <html lang="en">
+        <body>
+          <header style={{ padding: '1rem', borderBottom: '1px solid #eee' }}>
+            <SignedOut>
+              <SignInButton />
+              <SignUpButton />
+            </SignedOut>
+            <SignedIn>
+              <UserButton />
+            </SignedIn>
+          </header>
+          {children}
+        </body>
+      </html>
+    </ClerkProvider>
+  );
 }

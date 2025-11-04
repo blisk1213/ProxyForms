@@ -13,7 +13,7 @@ export async function generateMetadata({
   const { data: blog } = await getBlog(subdomain);
 
   return {
-    title: `${blog?.title}` || "A zenblog blog",
+    title: `${blog?.title}` || "A ProxyForms blog",
     icons: {
       icon:
         `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>${blog?.emoji}</text></svg>` ||
@@ -21,7 +21,7 @@ export async function generateMetadata({
     },
     description: blog?.description || "Start writing your blog today",
     openGraph: {
-      title: `${blog?.title} - Zenblog` || "A zenblog blog",
+      title: `${blog?.title} - ProxyForms` || "A ProxyForms blog",
       description: blog?.description || "Start writing your blog today",
       type: "website",
     },
@@ -39,7 +39,7 @@ async function HostedBlog({
     blog?.order
   );
 
-  if (blogError || postsError) {
+  if (blogError || postsError || !blog) {
     return (
       <div className="flex-center p-12">
         <h1>Blog not found</h1>
@@ -49,7 +49,17 @@ async function HostedBlog({
     );
   }
 
-  return <BlogHomePage theme={blog.theme as Theme} blog={blog} posts={posts} />;
+  // Convert null values to undefined for type compatibility
+  const blogData = {
+    emoji: blog.emoji,
+    title: blog.title,
+    description: blog.description,
+    twitter: blog.twitter ?? undefined,
+    instagram: blog.instagram ?? undefined,
+    website: blog.website ?? undefined,
+  };
+
+  return <BlogHomePage theme={blog.theme as Theme} blog={blogData} posts={posts || []} />;
 }
 
 export default HostedBlog;

@@ -10,6 +10,9 @@ if (!supabaseKey) {
 }
 
 export function createSupabaseBrowserClient() {
+  if (!supabaseUrl) {
+    throw new Error("Missing supabaseUrl");
+  }
   if (!supabaseKey) {
     throw new Error("Missing supabaseKey");
   }

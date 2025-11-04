@@ -1,6 +1,6 @@
 import { Endpoint } from "./public-api.types";
 
-export const BASE_API_URL = "https://zenblog.com/api/public";
+export const BASE_API_URL = "https://proxyforms.com/api/public";
 
 export const posts: Endpoint = {
   id: "posts",
@@ -12,29 +12,29 @@ export const posts: Endpoint = {
     typescript: [
       {
         description: "Get posts for a blog",
-        code: `const { data: posts } = await zenblog.posts.list()`,
+        code: `const { data: posts } = await proxyforms.posts.list()`,
       },
       {
         description: "Get posts for a blog filtered by a category",
-        code: `const { data: posts } = await zenblog.posts.list({
+        code: `const { data: posts } = await proxyforms.posts.list({
   category: "news",
 })`,
       },
       {
         description: "Get posts limit results to 10",
-        code: `const { data: posts } = await zenblog.posts.list({
+        code: `const { data: posts } = await proxyforms.posts.list({
   limit: 10,
 })`,
       },
       {
         description: "Get posts filtered by tag slugs",
-        code: `const { data: posts } = await zenblog.posts.list({
+        code: `const { data: posts } = await proxyforms.posts.list({
   tags: ["tag1", "tag2"],
 })`,
       },
       {
         description: "Get posts filtered by author slug",
-        code: `const { data: posts } = await zenblog.posts.list({
+        code: `const { data: posts } = await proxyforms.posts.list({
   author: "author-slug",
 })`,
       },
@@ -140,7 +140,7 @@ category?: {
     typescript: [
       {
         description: "Get a post by its slug",
-        code: `const { data: post } = await zenblog.posts.get({
+        code: `const { data: post } = await proxyforms.posts.get({
   slug: "post-slug",
 })`,
       },
@@ -174,7 +174,7 @@ export const categories: Endpoint = {
     typescript: [
       {
         description: "Get the categories for a blog",
-        code: `const { data: categories } = await zenblog.categories.list()`,
+        code: `const { data: categories } = await proxyforms.categories.list()`,
       },
     ],
   },
@@ -206,7 +206,7 @@ export const tags: Endpoint = {
     typescript: [
       {
         description: "Get the tags for a blog",
-        code: `const { data: tags } = await zenblog.tags.list()`,
+        code: `const { data: tags } = await proxyforms.tags.list()`,
       },
     ],
   },
@@ -221,7 +221,7 @@ export const authors: Endpoint = {
     typescript: [
       {
         description: "Get the authors for a blog",
-        code: `const { data: authors } = await zenblog.authors.list()`,
+        code: `const { data: authors } = await proxyforms.authors.list()`,
       },
     ],
   },
@@ -272,7 +272,7 @@ export const authorBySlug: Endpoint = {
     typescript: [
       {
         description: "Get an author by their slug",
-        code: `const { data: author } = await zenblog.authors.get({
+        code: `const { data: author } = await proxyforms.authors.get({
   slug: "author-slug",
 })`,
       },

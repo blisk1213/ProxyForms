@@ -1,7 +1,7 @@
 export const THEMES = [
   {
     id: "default",
-    name: "Zenblog",
+    name: "ProxyForms",
     description: "The default theme",
   },
   {

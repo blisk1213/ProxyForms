@@ -12,10 +12,10 @@ export default function ContactPage() {
           contact us by email.
         </p>
         <p className="font-mono">
-          Email: <a href="mailto:support@zenblog.com">support@zenblog.com</a>
+          Email: <a href="mailto:support@proxyforms.com">support@proxyforms.com</a>
         </p>
         <p className="font-mono">
-          Twitter: <a href="https://twitter.com/zenbloghq">@zenbloghq</a>
+          Twitter: <a href="https://twitter.com/proxyforms">@proxyforms</a>
         </p>
         <p>
           Please make sure to include all relevant information so we can get

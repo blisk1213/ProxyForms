@@ -9,7 +9,7 @@ import {
 import { usePricesQuery } from "@/queries/prices";
 import { useProductsQuery } from "@/queries/products";
 import { useSubscriptionQuery } from "@/queries/subscription";
-import { useUser } from "@/utils/supabase/browser";
+import { useUser } from "@clerk/nextjs";
 import {
   Check,
   CheckCircle,
@@ -36,7 +36,7 @@ type Props = {};
 export const SubscribeSection = () => {
   const products = useProductsQuery();
   const prices = usePricesQuery();
-  const user = useUser();
+  const { user } = useUser();
   const [interval, setInterval] = React.useState<"year" | "month">("year");
   const [isLoading, setIsLoading] = useState(false);
   const subscription = useSubscriptionQuery();
@@ -122,7 +122,7 @@ export const SubscribeSection = () => {
 
 const AccountPage = () => {
   const [loading, setLoading] = React.useState(false);
-  const user = useUser();
+  const { user } = useUser();
   const router = useRouter();
 
   const isSuccess = router.query.success === "true";
@@ -184,7 +184,7 @@ const AccountPage = () => {
       toast.success("Subscription updated successfully");
       router.replace("/account", undefined, { shallow: true });
     }
-  }, [isSuccess]);
+  }, [isSuccess, router]);
 
   return (
     <AppLayout
@@ -195,10 +195,10 @@ const AccountPage = () => {
       <Section className="px-4">
         <SectionTitle>Account</SectionTitle>
         <AccountList>
-          <AccountListItem label="Email" value={user?.email} />
+          <AccountListItem label="Email" value={user?.primaryEmailAddress?.emailAddress} />
           <AccountListItem
             label="Created at"
-            value={formatDate(user?.created_at || "")}
+            value={formatDate(user?.createdAt ? new Date(user.createdAt).toISOString() : "")}
           />
           <AccountListItem
             label="Reset password"

@@ -4,7 +4,10 @@ import { z } from "zod";
 import { logger } from "hono/logger";
 import { prettyJSON } from "hono/pretty-json";
 import { handle } from "hono/vercel";
-import { createClient } from "@/lib/server/supabase";
+import { currentUser } from "@clerk/nextjs/server";
+import { db } from "@/db";
+import { blogs, subscriptions, blogImages, authors } from "@/db/schema";
+import { eq, and, inArray } from "drizzle-orm";
 import { axiom, AXIOM_DATASETS, getApiUsageForBlog } from "lib/axiom";
 import {
   createOrRetrieveCustomer,
@@ -61,28 +64,42 @@ const handleError = (c: Context, error: keyof typeof errors, rawLog: any) => {
 };
 
 const getUser = async () => {
-  const supabase = createClient();
-  const res = await supabase.auth.getUser();
+  const user = await currentUser();
+
+  if (!user) {
+    return {
+      user: null,
+      error: { message: "Unauthorized" },
+    };
+  }
 
   return {
-    user: res.data.user,
-    error: res.error,
+    user: {
+      id: user.id,
+      email: user.primaryEmailAddress?.emailAddress || null,
+    },
+    error: null,
   };
 };
 
 const getBlogOwnership = async (blogId: string, userId: string) => {
-  const supabase = createClient();
-  const { data, error } = await supabase
-    .from("blogs")
-    .select("user_id")
-    .eq("id", blogId)
-    .single();
+  try {
+    const blog = await db.query.blogs.findFirst({
+      where: eq(blogs.id, blogId),
+      columns: {
+        userId: true,
+      },
+    });
 
-  if (error || !data) {
+    if (!blog) {
+      return false;
+    }
+
+    return blog.userId === userId;
+  } catch (error) {
+    console.error("Error checking blog ownership:", error);
     return false;
   }
-
-  return data.user_id === userId;
 };
 
 const createR2Client = () => {
@@ -291,15 +308,19 @@ const api = new Hono()
       }
 
       // Fetch user's subscription plan
-      const supabase = createClient();
-      const { data: subscriptionData, error: subError } = await supabase
-        .from("subscriptions")
-        .select("plan, status")
-        .eq("user_id", user.id)
-        .in("status", ["active", "trialing", "past_due"]) // Check for valid statuses
-        .maybeSingle(); // Use maybeSingle as user might not have a subscription row
-
-      if (subError) {
+      let subscriptionData;
+      try {
+        subscriptionData = await db.query.subscriptions.findFirst({
+          where: and(
+            eq(subscriptions.userId, user.id),
+            inArray(subscriptions.status, ["active", "trialing", "past_due"])
+          ),
+          columns: {
+            plan: true,
+            status: true,
+          },
+        });
+      } catch (subError) {
         console.error(
           "🔴 Error fetching subscription for size check:",
           subError
@@ -347,16 +368,16 @@ const api = new Hono()
         fileExtension ? "." + fileExtension : ""
       }`;
 
-      const { error: dbError } = await supabase.from("blog_images").insert({
-        blog_id: blogId,
-        file_name: uniqueFilename,
-        size_in_bytes: Number(size_in_bytes),
-        content_type: content_type,
-        upload_status: "pending",
-        is_video: content_type.startsWith("video/"),
-      });
-
-      if (dbError) {
+      try {
+        await db.insert(blogImages).values({
+          blogId: blogId,
+          fileName: uniqueFilename,
+          sizeInBytes: Number(size_in_bytes),
+          contentType: content_type,
+          uploadStatus: "pending",
+          isVideo: content_type.startsWith("video/"),
+        });
+      } catch (dbError) {
         console.error("🔴 dbError inserting pending record:", dbError);
         return c.json(
           { error: "Error storing file metadata" },
@@ -382,10 +403,14 @@ const api = new Hono()
         return c.json({ signedUrl, uniqueFilename }, { status: 200 });
       } catch (signError) {
         console.error("🔴 Error generating signed URL:", signError);
-        await supabase
-          .from("blog_images")
-          .delete()
-          .match({ blog_id: blogId, file_name: uniqueFilename });
+        await db
+          .delete(blogImages)
+          .where(
+            and(
+              eq(blogImages.blogId, blogId),
+              eq(blogImages.fileName, uniqueFilename)
+            )
+          );
         return c.json(
           { error: "Error generating upload URL" },
           { status: 500 }
@@ -503,15 +528,20 @@ const api = new Hono()
           const publicUrl = `https://${process.env.R2_PUBLIC_DOMAIN}/${fileName}`;
 
           // Insert record into blog_images table
-          const supabase = createClient();
-          const { error: dbError } = await supabase.from("blog_images").insert({
-            blog_id: blogId,
-            file_name: fileName,
-            file_url: publicUrl,
-            size_in_bytes: processedBuffer.length,
-            content_type: contentType,
-            is_video: isVideo,
-          });
+          let dbError;
+          try {
+            await db.insert(blogImages).values({
+              blogId: blogId,
+              fileName: fileName,
+              fileUrl: publicUrl,
+              sizeInBytes: processedBuffer.length,
+              contentType: contentType,
+              isVideo: isVideo,
+              uploadStatus: "uploaded",
+            });
+          } catch (error) {
+            dbError = error;
+          }
 
           if (dbError) {
             console.error("Database insert error:", dbError);
@@ -589,14 +619,20 @@ const api = new Hono()
           return c.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        // Re-added: Delete from Supabase DB first, matching on file_name
-        const supabase = createClient();
-        const { error: dbError } = await supabase
-          .from("blog_images")
-          .delete()
-          // Match on blog_id and the specific file names (R2 keys)
-          .eq("blog_id", blogId)
-          .in("file_name", fileNames);
+        // Re-added: Delete from DB first, matching on file_name
+        let dbError;
+        try {
+          await db
+            .delete(blogImages)
+            .where(
+              and(
+                eq(blogImages.blogId, blogId),
+                inArray(blogImages.fileName, fileNames)
+              )
+            );
+        } catch (error) {
+          dbError = error;
+        }
 
         if (dbError) {
           console.error("Database delete error:", dbError);
@@ -700,7 +736,7 @@ const api = new Hono()
 
       // Upload author image to R2 if exists
       // validate slug is url friendly
-      // Create author in supabase
+      // Create author in database
 
       const r2 = createR2Client();
 
@@ -728,18 +764,17 @@ const api = new Hono()
         imageUrl = `https://${process.env.R2_PUBLIC_DOMAIN}/authors/${fileName}`;
       }
 
-      const supabase = createClient();
-      const { error } = await supabase.from("authors").insert({
-        name,
-        blog_id: blogId,
-        slug,
-        image_url: imageUrl,
-        twitter,
-        website,
-        bio,
-      });
-
-      if (error) {
+      try {
+        await db.insert(authors).values({
+          name,
+          blogId: blogId,
+          slug,
+          imageUrl: imageUrl,
+          twitter,
+          website,
+          bio,
+        });
+      } catch (error) {
         console.error("Database insert error:", error);
         return c.json({ error: "Failed to create author" }, { status: 500 });
       }
@@ -812,16 +847,17 @@ const api = new Hono()
       if (formData.get("twitter")) updateData.twitter = formData.get("twitter");
       if (formData.get("website")) updateData.website = formData.get("website");
       if (formData.get("bio")) updateData.bio = formData.get("bio");
-      if (imageUrl) updateData.image_url = imageUrl;
+      if (imageUrl) updateData.imageUrl = imageUrl;
 
       // Update author in database
-      const supabase = createClient();
-      const { error } = await supabase
-        .from("authors")
-        .update(updateData)
-        .match({ blog_id: blogId, slug: authorSlug });
-
-      if (error) {
+      try {
+        await db
+          .update(authors)
+          .set(updateData)
+          .where(
+            and(eq(authors.blogId, blogId), eq(authors.slug, authorSlug))
+          );
+      } catch (error) {
         console.error("Database update error:", error);
         return c.json({ error: "Failed to update author" }, { status: 500 });
       }
@@ -855,25 +891,31 @@ const api = new Hono()
 
       // TODO: Optionally add R2 HeadObjectCommand check here to verify file existence
 
-      const supabase = createClient();
       const publicUrl = `https://${process.env.R2_PUBLIC_DOMAIN}/${fileName}`;
 
       // Update the existing pending record
-      const { error: updateError } = await supabase
-        .from("blog_images")
-        .update({
-          upload_status: "uploaded",
-          file_url: publicUrl,
-          file_name: fileName,
-          content_type: contentType,
-          size_in_bytes: sizeInBytes,
-          is_video: contentType.startsWith("video/"),
-        })
-        .match({
-          blog_id: blogId,
-          file_name: fileName,
-          upload_status: "pending",
-        });
+      let updateError;
+      try {
+        await db
+          .update(blogImages)
+          .set({
+            uploadStatus: "uploaded",
+            fileUrl: publicUrl,
+            fileName: fileName,
+            contentType: contentType,
+            sizeInBytes: sizeInBytes,
+            isVideo: contentType.startsWith("video/"),
+          })
+          .where(
+            and(
+              eq(blogImages.blogId, blogId),
+              eq(blogImages.fileName, fileName),
+              eq(blogImages.uploadStatus, "pending")
+            )
+          );
+      } catch (error) {
+        updateError = error;
+      }
 
       if (updateError) {
         console.error("Database update error on confirm:", updateError);

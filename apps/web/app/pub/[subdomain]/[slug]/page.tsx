@@ -19,10 +19,10 @@ export async function generateMetadata({
 
   if (!blog) {
     return {
-      title: "A zenblog blog",
+      title: "A ProxyForms blog",
       description: "Start writing your blog today",
       openGraph: {
-        title: "A zenblog blog",
+        title: "A ProxyForms blog",
         description: "Start writing your blog today",
         type: "website",
       },
@@ -43,7 +43,7 @@ export async function generateMetadata({
       type: "website",
       images: [
         {
-          url: `https://zenblog.com/api/public/v1/og?title=${post?.title}&emoji=${blog?.emoji}&url=${blog?.title}`,
+          url: `https://proxyforms.com/api/public/v1/og?title=${post?.title}&emoji=${blog?.emoji}&url=${blog?.title}`,
         },
       ],
     },

@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -88,9 +88,10 @@ export default function OGImageGenerator() {
     textColor,
     selectedFont,
     logo,
+    generateImage,
   ]);
 
-  const generateImage = () => {
+  const generateImage = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -127,9 +128,9 @@ export default function OGImageGenerator() {
       default:
         drawMinimalLayout(ctx);
     }
-  };
+  }, [selectedLayout, backgroundColor, textColor, drawMinimalLayout, drawCenteredLayout, drawSplitLayout, drawCardLayout]);
 
-  const drawMinimalLayout = (ctx: CanvasRenderingContext2D) => {
+  const drawMinimalLayout = useCallback((ctx: CanvasRenderingContext2D) => {
     // Logo
     if (logo) {
       const img = new Image();
@@ -156,9 +157,9 @@ export default function OGImageGenerator() {
     ctx.globalAlpha = 0.7;
     ctx.fillText(url, 80, 550);
     ctx.globalAlpha = 1;
-  };
+  }, [logo, selectedFont, title, description, url]);
 
-  const drawCenteredLayout = (ctx: CanvasRenderingContext2D) => {
+  const drawCenteredLayout = useCallback((ctx: CanvasRenderingContext2D) => {
     ctx.textAlign = "center";
 
     // Logo
@@ -187,9 +188,9 @@ export default function OGImageGenerator() {
     ctx.globalAlpha = 0.7;
     ctx.fillText(url, 600, 520);
     ctx.globalAlpha = 1;
-  };
+  }, [logo, selectedFont, title, description, url]);
 
-  const drawSplitLayout = (ctx: CanvasRenderingContext2D) => {
+  const drawSplitLayout = useCallback((ctx: CanvasRenderingContext2D) => {
     // Left side content
     ctx.textAlign = "left";
 
@@ -226,9 +227,9 @@ export default function OGImageGenerator() {
     ctx.fillRect(700, 0, 500, 630);
     ctx.globalAlpha = 1;
     ctx.fillStyle = textColor;
-  };
+  }, [logo, selectedFont, title, description, url, textColor]);
 
-  const drawCardLayout = (ctx: CanvasRenderingContext2D) => {
+  const drawCardLayout = useCallback((ctx: CanvasRenderingContext2D) => {
     // Card background
     ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
     ctx.fillRect(100, 100, 1000, 430);
@@ -262,7 +263,7 @@ export default function OGImageGenerator() {
     ctx.globalAlpha = 0.7;
     ctx.fillText(url, 150, 470);
     ctx.globalAlpha = 1;
-  };
+  }, [textColor, logo, selectedFont, title, description, url]);
 
   const wrapText = (
     ctx: CanvasRenderingContext2D,

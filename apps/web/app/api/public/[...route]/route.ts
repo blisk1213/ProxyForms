@@ -1,20 +1,31 @@
 import { handle } from "hono/vercel";
-import { createClient } from "@/lib/server/supabase";
 import { logger } from "hono/logger";
 import { prettyJSON } from "hono/pretty-json";
 import { Hono } from "hono";
 import {
-  categories,
+  categories as categoriesRoute,
   postBySlug,
-  posts,
-  tags,
-  authors,
+  posts as postsRoute,
+  tags as tagsRoute,
+  authors as authorsRoute,
   authorBySlug,
 } from "./public-api.constants";
 import { PublicApiResponse } from "./public-api.types";
-import { Post, PostWithContent } from "@zenblog/types";
+import { Post, PostWithContent } from "@proxyforms/types";
 import { throwError } from "./public-api.errors";
 import { trackApiUsage } from "lib/axiom";
+import {
+  cacheGetOrSet,
+  CacheTTL,
+  getCachedPostBySlug,
+  cachePost,
+  getCachedCategories,
+  cacheCategories,
+  getCachedTags,
+  cacheTags
+} from "@/lib/cache";
+import { db, posts, categories, tags, authors, postTags, postAuthors } from "@/db";
+import { eq, and, desc, sql, inArray } from "drizzle-orm";
 
 const app = new Hono()
   .basePath("/api/public")
@@ -40,308 +51,513 @@ const app = new Hono()
     await next();
   });
 
-app.get(posts.path, async (c) => {
+app.get(postsRoute.path, async (c) => {
   const blogId = c.req.param("blogId");
   const offset = parseInt(c.req.query("offset") || "0");
   const limit = parseInt(c.req.query("limit") || "30");
   const categoryFilter = c.req.query("category");
   const tagsFilter = c.req.query("tags")?.split(",");
   const authorFilter = c.req.query("author");
-  const supabase = createClient();
 
   if (!blogId) {
     return throwError(c, "MISSING_BLOG_ID");
   }
 
-  let postsQuery = supabase
-    .from("posts_v10")
-    .select(
-      "title, slug, published_at, excerpt, cover_image, tags, category_name, category_slug, authors",
-      { count: "exact" }
-    )
-    .eq("blog_id", blogId)
-    .eq("published", true)
-    .eq("deleted", false)
-    .order("published_at", { ascending: false })
-    .range(offset, offset + limit - 1);
+  // Generate cache key based on query parameters
+  const cacheKey = `posts:${blogId}:${offset}:${limit}:${categoryFilter || 'all'}:${tagsFilter?.join(',') || 'all'}:${authorFilter || 'all'}`;
 
-  if (categoryFilter) {
-    postsQuery.eq("category_slug", categoryFilter);
-  }
+  // Use cache-aside pattern
+  const cachedResponse = await cacheGetOrSet<PublicApiResponse<Post[]>>(
+    cacheKey,
+    async () => {
+      // Build base query conditions
+      const conditions = [
+        eq(posts.blogId, blogId),
+        eq(posts.published, true),
+        eq(posts.deleted, false),
+      ];
 
-  const blogTagsQuery = await supabase
-    .from("tags")
-    .select("slug, name")
-    .eq("blog_id", blogId);
+      // Add category filter if provided
+      if (categoryFilter) {
+        const category = await db.query.categories.findFirst({
+          where: and(
+            eq(categories.blogId, blogId),
+            eq(categories.slug, categoryFilter)
+          ),
+        });
+        if (category) {
+          conditions.push(eq(posts.categoryId, category.id));
+        }
+      }
 
-  if (tagsFilter && tagsFilter.length > 0) {
-    // Filter posts query by tags in request
-    postsQuery = postsQuery.overlaps("tags", tagsFilter);
-  }
+      // Get author filter if provided
+      let authorIdFilter: number | undefined;
+      if (authorFilter) {
+        const author = await db.query.authors.findFirst({
+          where: and(
+            eq(authors.blogId, blogId),
+            eq(authors.slug, authorFilter)
+          ),
+        });
+        authorIdFilter = author?.id;
+      }
 
-  const authorsQuery = await supabase
-    .from("authors")
-    .select("id, slug, name, image_url, bio, website, twitter")
-    .eq("blog_id", blogId);
+      // Fetch all blog tags for later mapping
+      const blogTags = await db.query.tags.findMany({
+        where: eq(tags.blogId, blogId),
+        columns: {
+          id: true,
+          slug: true,
+          name: true,
+        },
+      });
 
-  if (authorFilter) {
-    const authorData = authorsQuery.data?.find((a) => a.slug === authorFilter);
+      // Fetch all blog authors for later mapping
+      const blogAuthors = await db.query.authors.findMany({
+        where: eq(authors.blogId, blogId),
+        columns: {
+          id: true,
+          slug: true,
+          name: true,
+          imageUrl: true,
+          bio: true,
+          website: true,
+          twitter: true,
+        },
+      });
 
-    postsQuery = postsQuery.overlaps("authors", [authorData?.id]);
-  }
+      // Get posts with category
+      const postsQuery = db
+        .select({
+          id: posts.id,
+          title: posts.title,
+          slug: posts.slug,
+          publishedAt: posts.publishedAt,
+          excerpt: posts.excerpt,
+          coverImage: posts.coverImage,
+          categoryId: posts.categoryId,
+          categoryName: categories.name,
+          categorySlug: categories.slug,
+        })
+        .from(posts)
+        .leftJoin(categories, eq(posts.categoryId, categories.id))
+        .where(and(...conditions))
+        .orderBy(desc(posts.publishedAt))
+        .limit(limit)
+        .offset(offset);
 
-  const { data: posts, error, count } = await postsQuery;
+      const postsResult = await postsQuery;
 
-  if (error) {
-    console.log(error);
-    return throwError(c, "NO_POSTS_FOUND");
-  }
+      // Count total posts
+      const countResult = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(posts)
+        .where(and(...conditions));
 
-  if (!posts) {
-    return throwError(c, "NO_POSTS_FOUND");
-  }
+      const totalCount = countResult[0]?.count || 0;
 
-  const formattedPostsRes = posts.map(
-    ({ category_name, category_slug, ...post }) => {
-      const basePost = {
-        ...post,
-        category:
-          category_name && category_slug
-            ? { name: category_name, slug: category_slug }
-            : null,
-        tags: post.tags
-          ? blogTagsQuery.data?.filter((tag) => post.tags?.includes(tag.slug))
-          : [],
-        authors:
-          post.authors && authorsQuery.data
-            ? authorsQuery.data
-                .filter((author) => post.authors?.includes(author.id))
-                .map(({ id, ...author }) => ({
-                  ...author,
-                  image_url: author.image_url || "",
-                  bio: author.bio || undefined,
-                  website_url: author.website || undefined,
-                  twitter_url: author.twitter || undefined,
-                }))
-            : [],
+      // Get post IDs for fetching tags and authors
+      const postIds = postsResult.map(p => p.id);
+
+      // Fetch post tags
+      let postTagsMap = new Map<string, string[]>();
+      if (postIds.length > 0) {
+        const postTagsResult = await db
+          .select({
+            postId: postTags.postId,
+            tagId: postTags.tagId,
+          })
+          .from(postTags)
+          .where(inArray(postTags.postId, postIds));
+
+        // Build map of postId to tag slugs
+        for (const pt of postTagsResult) {
+          const tag = blogTags.find(t => t.id === pt.tagId);
+          if (tag) {
+            if (!postTagsMap.has(pt.postId)) {
+              postTagsMap.set(pt.postId, []);
+            }
+            postTagsMap.get(pt.postId)!.push(tag.slug);
+          }
+        }
+      }
+
+      // Fetch post authors
+      let postAuthorsMap = new Map<string, number[]>();
+      if (postIds.length > 0) {
+        const postAuthorsResult = await db
+          .select({
+            postId: postAuthors.postId,
+            authorId: postAuthors.authorId,
+          })
+          .from(postAuthors)
+          .where(inArray(postAuthors.postId, postIds));
+
+        // Build map of postId to author IDs
+        for (const pa of postAuthorsResult) {
+          if (!postAuthorsMap.has(pa.postId)) {
+            postAuthorsMap.set(pa.postId, []);
+          }
+          postAuthorsMap.get(pa.postId)!.push(pa.authorId);
+        }
+      }
+
+      // Filter by tags if provided
+      let filteredPosts = postsResult;
+      if (tagsFilter && tagsFilter.length > 0) {
+        filteredPosts = postsResult.filter(post => {
+          const postTagSlugs = postTagsMap.get(post.id) || [];
+          return tagsFilter.some(tag => postTagSlugs.includes(tag));
+        });
+      }
+
+      // Filter by author if provided
+      if (authorIdFilter !== undefined) {
+        filteredPosts = filteredPosts.filter(post => {
+          const postAuthorIds = postAuthorsMap.get(post.id) || [];
+          return postAuthorIds.includes(authorIdFilter);
+        });
+      }
+
+      // Format the response
+      const formattedPostsRes = filteredPosts.map((post) => {
+        const postTagSlugs = postTagsMap.get(post.id) || [];
+        const postAuthorIds = postAuthorsMap.get(post.id) || [];
+
+        return {
+          title: post.title,
+          slug: post.slug,
+          published_at: post.publishedAt,
+          excerpt: post.excerpt,
+          cover_image: post.coverImage,
+          category:
+            post.categoryName && post.categorySlug
+              ? { name: post.categoryName, slug: post.categorySlug }
+              : null,
+          tags: blogTags.filter(tag => postTagSlugs.includes(tag.slug)),
+          authors: blogAuthors
+            .filter(author => postAuthorIds.includes(author.id))
+            .map(({ id, imageUrl, ...author }) => ({
+              ...author,
+              image_url: imageUrl || "",
+              bio: author.bio || undefined,
+              website_url: author.website || undefined,
+              twitter_url: author.twitter || undefined,
+            })),
+        };
+      });
+
+      return {
+        data: formattedPostsRes as unknown as Post[],
+        total: totalCount,
+        offset,
+        limit,
       };
-
-      return basePost;
-    }
+    },
+    CacheTTL.FIVE_MINUTES
   );
 
-  const res: PublicApiResponse<Post[]> = {
-    data: formattedPostsRes as unknown as Post[],
-    total: count || 0,
-    offset,
-    limit,
-  };
-
-  return c.json(res, 200);
+  return c.json(cachedResponse, 200);
 });
 
 app.get(postBySlug.path, async (c) => {
   const blogId = c.req.param("blogId");
   const slug = c.req.param("slug");
-  const supabase = createClient();
 
   if (!blogId || !slug) {
     return throwError(c, "MISSING_BLOG_ID_OR_SLUG");
   }
 
-  const { data: post, error } = await supabase
-    .from("posts_v10")
-    .select(
-      "title, slug, published_at, excerpt, cover_image, tags, category_name, category_slug, html_content, authors"
-    )
-    .eq("blog_id", blogId)
-    .eq("slug", slug)
-    .single();
+  // Generate cache key for this specific post
+  const cacheKey = `post:${blogId}:slug:${slug}`;
 
-  if (error || !post) {
-    return throwError(c, "NO_POSTS_FOUND");
-  }
+  // Use cache-aside pattern
+  const cachedPost = await cacheGetOrSet<{ data: PostWithContent }>(
+    cacheKey,
+    async () => {
+      // Fetch the post with category
+      const postResult = await db
+        .select({
+          id: posts.id,
+          title: posts.title,
+          slug: posts.slug,
+          publishedAt: posts.publishedAt,
+          excerpt: posts.excerpt,
+          coverImage: posts.coverImage,
+          htmlContent: posts.htmlContent,
+          categoryName: categories.name,
+          categorySlug: categories.slug,
+        })
+        .from(posts)
+        .leftJoin(categories, eq(posts.categoryId, categories.id))
+        .where(
+          and(
+            eq(posts.blogId, blogId),
+            eq(posts.slug, slug),
+            eq(posts.published, true),
+            eq(posts.deleted, false)
+          )
+        )
+        .limit(1);
 
-  // Fetch tags data
-  const { data: tagsData } = await supabase
-    .from("tags")
-    .select("slug, name")
-    .eq("blog_id", blogId)
-    .in("slug", post.tags || []);
+      const post = postResult[0];
 
-  // Create initial formatted post with correct tags
-  let formattedPost: PostWithContent = {
-    title: post.title || "",
-    slug: post.slug || "",
-    published_at: post.published_at || "",
-    excerpt: post.excerpt || "",
-    cover_image: post.cover_image || "",
-    tags: tagsData || [],
-    category:
-      !post.category_name || !post.category_slug
-        ? null
-        : {
-            name: post.category_name,
-            slug: post.category_slug,
-          },
-    authors: [],
-    html_content: post.html_content || "",
-  };
+      if (!post) {
+        throw new Error("NO_POSTS_FOUND");
+      }
 
-  if (post.authors && post.authors.length > 0) {
-    const { data: authorsData } = await supabase
-      .from("authors")
-      .select("id, slug, name, image_url, bio, website, twitter")
-      .eq("blog_id", blogId)
-      .in("id", post.authors);
-    if (authorsData) {
-      formattedPost = {
-        ...formattedPost, // Spread the existing formattedPost to keep the correct tags
-        authors: authorsData.map(({ id, ...author }) => ({
+      // Fetch post tags
+      const postTagsResult = await db
+        .select({
+          slug: tags.slug,
+          name: tags.name,
+        })
+        .from(postTags)
+        .innerJoin(tags, eq(postTags.tagId, tags.id))
+        .where(eq(postTags.postId, post.id));
+
+      // Fetch post authors
+      const postAuthorsResult = await db
+        .select({
+          id: authors.id,
+          slug: authors.slug,
+          name: authors.name,
+          imageUrl: authors.imageUrl,
+          bio: authors.bio,
+          website: authors.website,
+          twitter: authors.twitter,
+        })
+        .from(postAuthors)
+        .innerJoin(authors, eq(postAuthors.authorId, authors.id))
+        .where(eq(postAuthors.postId, post.id));
+
+      // Format the response
+      const formattedPost: PostWithContent = {
+        title: post.title || "",
+        slug: post.slug || "",
+        published_at: post.publishedAt || "",
+        excerpt: post.excerpt || "",
+        cover_image: post.coverImage || "",
+        tags: postTagsResult,
+        category:
+          !post.categoryName || !post.categorySlug
+            ? null
+            : {
+                name: post.categoryName,
+                slug: post.categorySlug,
+              },
+        authors: postAuthorsResult.map(({ id, imageUrl, ...author }) => ({
           ...author,
-          image_url: author.image_url || "",
+          image_url: imageUrl || "",
           bio: author.bio || undefined,
           website_url: author.website || undefined,
           twitter_url: author.twitter || undefined,
         })),
+        html_content: post.htmlContent || "",
       };
-    }
-  }
 
-  return c.json({ data: formattedPost });
+      return { data: formattedPost };
+    },
+    CacheTTL.TEN_MINUTES
+  );
+
+  return c.json(cachedPost);
 });
 
-app.get(categories.path, async (c) => {
+app.get(categoriesRoute.path, async (c) => {
   const blogId = c.req.param("blogId");
   const offset = parseInt(c.req.query("offset") || "0");
   const limit = parseInt(c.req.query("limit") || "30");
-  const supabase = createClient();
 
   if (!blogId) {
     return throwError(c, "MISSING_BLOG_ID");
   }
 
-  const {
-    data: categories,
-    error,
-    count,
-  } = await supabase
-    .from("categories")
-    .select("name, slug", { count: "exact" })
-    .eq("blog_id", blogId)
-    .range(offset, offset + limit - 1);
+  const cacheKey = `categories:${blogId}:${offset}:${limit}`;
 
-  if (error) {
-    return throwError(c, "NO_CATEGORIES_FOUND");
-  }
+  const cachedResponse = await cacheGetOrSet(
+    cacheKey,
+    async () => {
+      // Fetch categories
+      const categoriesResult = await db
+        .select({
+          name: categories.name,
+          slug: categories.slug,
+        })
+        .from(categories)
+        .where(eq(categories.blogId, blogId))
+        .limit(limit)
+        .offset(offset);
 
-  const res: PublicApiResponse<typeof categories> = {
-    data: categories,
-    total: count || 0,
-    offset,
-    limit,
-  };
+      // Count total categories
+      const countResult = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(categories)
+        .where(eq(categories.blogId, blogId));
 
-  return c.json(res);
+      const totalCount = countResult[0]?.count || 0;
+
+      return {
+        data: categoriesResult,
+        total: totalCount,
+        offset,
+        limit,
+      };
+    },
+    CacheTTL.THIRTY_MINUTES
+  );
+
+  return c.json(cachedResponse);
 });
 
-app.get(tags.path, async (c) => {
+app.get(tagsRoute.path, async (c) => {
   const blogId = c.req.param("blogId");
   const offset = parseInt(c.req.query("offset") || "0");
   const limit = parseInt(c.req.query("limit") || "30");
-  const supabase = createClient();
 
   if (!blogId) {
     return throwError(c, "MISSING_BLOG_ID");
   }
 
-  const {
-    data: tags,
-    error,
-    count,
-  } = await supabase
-    .from("tags")
-    .select("name, slug", { count: "exact" })
-    .eq("blog_id", blogId)
-    .range(offset, offset + limit - 1);
+  const cacheKey = `tags:${blogId}:${offset}:${limit}`;
 
-  if (error) {
-    return throwError(c, "NO_TAGS_FOUND");
-  }
+  const cachedResponse = await cacheGetOrSet(
+    cacheKey,
+    async () => {
+      // Fetch tags
+      const tagsResult = await db
+        .select({
+          name: tags.name,
+          slug: tags.slug,
+        })
+        .from(tags)
+        .where(eq(tags.blogId, blogId))
+        .limit(limit)
+        .offset(offset);
 
-  const res: PublicApiResponse<typeof tags> = {
-    data: tags,
-    total: count || 0,
-    offset,
-    limit,
-  };
+      // Count total tags
+      const countResult = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(tags)
+        .where(eq(tags.blogId, blogId));
 
-  return c.json(res);
+      const totalCount = countResult[0]?.count || 0;
+
+      return {
+        data: tagsResult,
+        total: totalCount,
+        offset,
+        limit,
+      };
+    },
+    CacheTTL.THIRTY_MINUTES
+  );
+
+  return c.json(cachedResponse);
 });
 
-app.get(authors.path, async (c) => {
+app.get(authorsRoute.path, async (c) => {
   const blogId = c.req.param("blogId");
   const offset = parseInt(c.req.query("offset") || "0");
   const limit = parseInt(c.req.query("limit") || "30");
-  const supabase = createClient();
 
   if (!blogId) {
     return throwError(c, "MISSING_BLOG_ID");
   }
 
-  const {
-    data: authors,
-    error,
-    count,
-  } = await supabase
-    .from("authors")
-    .select("name, slug, image_url, twitter, website, bio", { count: "exact" })
-    .eq("blog_id", blogId)
-    .range(offset, offset + limit - 1);
+  const cacheKey = `authors:${blogId}:${offset}:${limit}`;
 
-  if (error) {
-    return throwError(c, "NO_AUTHORS_FOUND");
-  }
+  const cachedResponse = await cacheGetOrSet(
+    cacheKey,
+    async () => {
+      // Fetch authors
+      const authorsResult = await db
+        .select({
+          name: authors.name,
+          slug: authors.slug,
+          image_url: authors.imageUrl,
+          twitter: authors.twitter,
+          website: authors.website,
+          bio: authors.bio,
+        })
+        .from(authors)
+        .where(eq(authors.blogId, blogId))
+        .limit(limit)
+        .offset(offset);
 
-  const res: PublicApiResponse<typeof authors> = {
-    data: authors,
-    total: count || 0,
-    offset,
-    limit,
-  };
+      // Count total authors
+      const countResult = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(authors)
+        .where(eq(authors.blogId, blogId));
 
-  return c.json(res);
+      const totalCount = countResult[0]?.count || 0;
+
+      return {
+        data: authorsResult,
+        total: totalCount,
+        offset,
+        limit,
+      };
+    },
+    CacheTTL.THIRTY_MINUTES
+  );
+
+  return c.json(cachedResponse);
 });
 
 app.get(authorBySlug.path, async (c) => {
   const blogId = c.req.param("blogId");
   const slug = c.req.param("slug");
-  const supabase = createClient();
 
   if (!blogId || !slug) {
     return throwError(c, "MISSING_BLOG_ID_OR_SLUG");
   }
 
-  const { data: author, error } = await supabase
-    .from("authors")
-    .select("name, slug, image_url, twitter, website, bio")
-    .eq("blog_id", blogId)
-    .eq("slug", slug)
-    .single();
+  const cacheKey = `author:${blogId}:slug:${slug}`;
 
-  if (error || !author) {
-    return throwError(c, "AUTHOR_NOT_FOUND");
-  }
+  const cachedAuthor = await cacheGetOrSet(
+    cacheKey,
+    async () => {
+      // Fetch author by slug
+      const authorResult = await db
+        .select({
+          name: authors.name,
+          slug: authors.slug,
+          image_url: authors.imageUrl,
+          twitter: authors.twitter,
+          website: authors.website,
+          bio: authors.bio,
+        })
+        .from(authors)
+        .where(
+          and(
+            eq(authors.blogId, blogId),
+            eq(authors.slug, slug)
+          )
+        )
+        .limit(1);
 
-  return c.json({
-    data: {
-      ...author,
-      image_url: author.image_url || "",
-      bio: author.bio || "",
-      website: author.website || "",
-      twitter: author.twitter || "",
+      const author = authorResult[0];
+
+      if (!author) {
+        throw new Error("AUTHOR_NOT_FOUND");
+      }
+
+      return {
+        data: {
+          ...author,
+          image_url: author.image_url || "",
+          bio: author.bio || "",
+          website: author.website || "",
+          twitter: author.twitter || "",
+        },
+      };
     },
-  });
+    CacheTTL.THIRTY_MINUTES
+  );
+
+  return c.json(cachedAuthor);
 });
 
 export const GET = handle(app);

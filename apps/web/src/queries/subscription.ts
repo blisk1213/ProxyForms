@@ -1,7 +1,8 @@
 import { PricingPlanId } from "@/lib/pricing.constants";
-import { createSupabaseBrowserClient } from "@/lib/supabase";
-import { useUser } from "@/utils/supabase/browser";
+import { db, subscriptions } from "@/db";
+import { useUser } from "@clerk/nextjs";
 import { useQuery } from "@tanstack/react-query";
+import { eq } from "drizzle-orm";
 import Stripe from "stripe";
 
 const SUBSCRIPTION_KEYS = ["subscription"];
@@ -15,19 +16,17 @@ const SUBSCRIPTION_KEYS = ["subscription"];
  * - isValidSubscription: Whether the user's subscription is valid (active, trialing, or past due).
  */
 export function useSubscriptionQuery() {
-  const sb = createSupabaseBrowserClient();
-  const user = useUser();
+  const { user } = useUser();
 
   return useQuery({
     queryKey: SUBSCRIPTION_KEYS,
     enabled: !!user,
     queryFn: async () => {
-      const { data } = await sb
-        .from("subscriptions")
-        .select("subscription")
-        .eq("user_id", user?.id || "")
-        .limit(1)
-        .throwOnError();
+      const data = await db
+        .select()
+        .from(subscriptions)
+        .where(eq(subscriptions.userId, user?.id || ""))
+        .limit(1);
 
       const res = data?.[0]?.subscription as unknown as Stripe.Subscription;
 

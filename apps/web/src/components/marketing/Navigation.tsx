@@ -4,14 +4,14 @@ import { ZendoLogo } from "../ZendoLogo";
 import Link from "next/link";
 import { FaBars, FaTwitter } from "react-icons/fa";
 import { Button } from "../ui/button";
-import { useUser } from "@/utils/supabase/browser";
+import { useUser } from "@clerk/nextjs";
 import { HiOutlineMenu, HiOutlineX } from "react-icons/hi";
 import { Drawer, DrawerContent } from "../ui/drawer";
 
 type Props = {};
 
 const Navigation = (props: Props) => {
-  const user = useUser();
+  const { user } = useUser();
   const [isOpen, setIsOpen] = useState(false);
 
   const links = [

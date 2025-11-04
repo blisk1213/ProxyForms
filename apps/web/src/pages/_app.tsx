@@ -10,7 +10,7 @@ import {
 } from "@tanstack/react-query";
 import { Toaster } from "sonner";
 import { useEffect, useState } from "react";
-import { UserProvider } from "@/utils/supabase/browser";
+import { ClerkProvider } from "@clerk/nextjs";
 import { PostHogProvider } from "posthog-js/react";
 import posthog from "posthog-js";
 
@@ -49,10 +49,10 @@ function MyApp({ Component, pageProps }: AppProps) {
   }, []);
 
   return (
-    <div className={`${inter.variable}`}>
-      <PostHogProvider client={posthog}>
-        <UserProvider>
-          <PlausibleProvider domain="zenblog.com">
+    <ClerkProvider>
+      <div className={`${inter.variable}`}>
+        <PostHogProvider client={posthog}>
+          <PlausibleProvider domain="proxyforms.com">
             <QueryClientProvider client={queryClient}>
               <HydrationBoundary state={pageProps.dehydratedState}>
                 <Component key={pathname} {...pageProps} />
@@ -71,9 +71,9 @@ function MyApp({ Component, pageProps }: AppProps) {
               </HydrationBoundary>
             </QueryClientProvider>
           </PlausibleProvider>
-        </UserProvider>
-      </PostHogProvider>
-    </div>
+        </PostHogProvider>
+      </div>
+    </ClerkProvider>
   );
 }
 

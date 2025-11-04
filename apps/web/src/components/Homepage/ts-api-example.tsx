@@ -20,16 +20,16 @@ export const TsApiExample = () => {
   const STEPS: CodeStepperStep[] = [
     {
       id: "init",
-      comment: "1. initialize the zenblog client",
-      code: `import { createZenblogClient } from "zenblog";
+      comment: "1. initialize the ProxyForms client",
+      code: `import { createProxyFormsClient } from "proxyforms";
 
-const zenblog = createZenblogClient({ blogId: BLOG_ID });`,
+const proxyforms = createProxyFormsClient({ blogId: BLOG_ID });`,
       browser: (handleStepClick: (index: number) => void) => (
         <div>
           <div className="flex h-60 w-full flex-col items-center justify-center gap-4 text-center">
             <CheckCircle2 className="text-emerald-500" />
             <span className="font-mono text-sm">
-              Zenblog client initialized successfully!
+              ProxyForms client initialized successfully!
             </span>
             <button
               onClick={() => {
@@ -46,7 +46,7 @@ const zenblog = createZenblogClient({ blogId: BLOG_ID });`,
     {
       id: "getposts",
       comment: "2. fetch posts to build blog homepage",
-      code: `const posts = await zenblog.posts.list();`,
+      code: `const posts = await proxyforms.posts.list();`,
       browser: () => (
         <div>
           <h1 className="py-8 text-center text-xl font-medium">
@@ -66,7 +66,7 @@ const zenblog = createZenblogClient({ blogId: BLOG_ID });`,
     {
       id: "getpost",
       comment: "3. fetch a single post with its content",
-      code: `const post = await zenblog.posts.get({ slug: params.slug });`,
+      code: `const post = await proxyforms.posts.get({ slug: params.slug });`,
       browser: () => (
         <div>
           <div className="mb-4 h-24 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600"></div>

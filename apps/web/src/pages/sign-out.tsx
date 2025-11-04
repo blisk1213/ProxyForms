@@ -1,26 +1,24 @@
 import Spinner from "@/components/Spinner";
-import { createSupabaseBrowserClient } from "@/lib/supabase";
+import { useClerk } from "@clerk/nextjs";
+import { useRouter } from "next/router";
 import { useEffect } from "react";
 
 export default function SignOut() {
-  const supa = createSupabaseBrowserClient();
+  const { signOut } = useClerk();
+  const router = useRouter();
 
   useEffect(() => {
-    supa.auth.signOut().then((res) => {
-      console.log("Sign out: ", res);
-      if (res.error) {
-        console.error(res.error);
-        alert("An error occurred while signing out. Please try again.");
-        return;
-      }
-
-      window.location.pathname = "/";
+    signOut().then(() => {
+      router.push("/");
     });
-  }, [supa]);
+  }, [signOut, router]);
 
   return (
-    <div className="p-24">
-      <Spinner />
+    <div className="flex h-screen items-center justify-center">
+      <div className="text-center">
+        <Spinner />
+        <p className="mt-4 text-slate-600">Signing out...</p>
+      </div>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable jsx-a11y/alt-text */
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Button } from "../ui/button";
 import { ImageIcon, Loader2 } from "lucide-react";
 import { Input } from "../ui/input";
@@ -60,7 +60,7 @@ export const ImageUploader = ({
     return () => {
       window.removeEventListener("paste", handlePaste);
     };
-  }, []);
+  }, [uploadToClient]);
 
   async function uploadImageToBlogAndGetURL(file: File) {
     const file_size = file.size; // Use original file size
@@ -220,7 +220,7 @@ export const ImageUploader = ({
     }
   }
 
-  const uploadToClient = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const uploadToClient = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const imageFile = e.target.files[0];
       const fileSizeFormatted = formatBytes(imageFile.size);
@@ -269,7 +269,7 @@ export const ImageUploader = ({
       setCreateObjectURL(URL.createObjectURL(imageFile));
       setLoading(false);
     }
-  };
+  }, [isProPlan]);
 
   return (
     <div className={cn("max-w-xl", className)}>

@@ -1,25 +1,35 @@
-import { createSupabaseBrowserClient } from "@/lib/supabase";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { db } from "@/db";
+import { blogs } from "@/db/schema/blogs";
+import { eq, asc } from "drizzle-orm";
+import { useUser } from "@clerk/nextjs";
 
 export const keys = {
   blogs: () => ["blogs"],
   blog: (blogId: string) => ["blog", blogId],
 };
 
-const sb = createSupabaseBrowserClient();
-
 export const useBlogQuery = (blogId: string) =>
   useQuery({
     queryKey: keys.blog(blogId),
     queryFn: async () => {
-      const res = await sb
-        .from("blogs")
-        .select(
-          "id, title, emoji, description, created_at, slug, theme, twitter, instagram, website"
-        )
-        .eq("id", blogId)
-        .single();
-      return res.data;
+      const result = await db
+        .select({
+          id: blogs.id,
+          title: blogs.title,
+          emoji: blogs.emoji,
+          description: blogs.description,
+          createdAt: blogs.createdAt,
+          slug: blogs.slug,
+          theme: blogs.theme,
+          twitter: blogs.twitter,
+          instagram: blogs.instagram,
+          website: blogs.website,
+        })
+        .from(blogs)
+        .where(eq(blogs.id, blogId))
+        .limit(1);
+      return result[0] || null;
     },
     enabled: !!blogId && blogId !== "demo",
   });
@@ -29,13 +39,10 @@ export const useBlogsQuery = ({ enabled }: { enabled: boolean }) =>
     enabled,
     queryKey: keys.blogs(),
     queryFn: async () => {
-      const { data, error } = await sb
-        .from("blogs")
-        .select("*")
-        .order("created_at", { ascending: true });
-      if (error) {
-        throw error;
-      }
+      const data = await db
+        .select()
+        .from(blogs)
+        .orderBy(asc(blogs.createdAt));
       return data;
     },
     staleTime: 5 * 60 * 1000,
@@ -43,7 +50,7 @@ export const useBlogsQuery = ({ enabled }: { enabled: boolean }) =>
 
 export const useCreateBlogMutation = () => {
   const queryClient = useQueryClient();
-  const supa = createSupabaseBrowserClient();
+  const { user } = useUser();
 
   return useMutation({
     mutationFn: async (newBlog: {
@@ -52,8 +59,14 @@ export const useCreateBlogMutation = () => {
       emoji: string;
       // slug: string;
     }) => {
-      const res = await supa.from("blogs").insert(newBlog).select().single();
-      return res;
+      if (!user?.id) {
+        throw new Error("User not authenticated");
+      }
+      const result = await db.insert(blogs).values({
+        ...newBlog,
+        userId: user.id,
+      }).returning();
+      return { data: result[0], error: null };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: keys.blogs() });
@@ -63,7 +76,6 @@ export const useCreateBlogMutation = () => {
 
 export const useUpdateBlogMutation = (opts?: { onSuccess?: () => void }) => {
   const queryClient = useQueryClient();
-  const supa = createSupabaseBrowserClient();
 
   return useMutation({
     mutationFn: async (
@@ -72,16 +84,16 @@ export const useUpdateBlogMutation = (opts?: { onSuccess?: () => void }) => {
         description: string;
         emoji: string;
         theme: string;
-        access_token: string;
+        accessToken: string;
       }>
     ) => {
-      const res = await supa
-        .from("blogs")
-        .update(blogData)
-        .eq("id", blogData.id)
-        .select()
-        .single();
-      return res.data;
+      const { id, ...updateData } = blogData;
+      const result = await db
+        .update(blogs)
+        .set(updateData)
+        .where(eq(blogs.id, id))
+        .returning();
+      return result[0];
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: keys.blogs() });
@@ -92,11 +104,10 @@ export const useUpdateBlogMutation = (opts?: { onSuccess?: () => void }) => {
 
 export const useDeleteBlogMutation = () => {
   const queryClient = useQueryClient();
-  const supa = createSupabaseBrowserClient();
 
   return useMutation({
     mutationFn: async (blogId: string) => {
-      await supa.from("blogs").delete().eq("id", blogId);
+      await db.delete(blogs).where(eq(blogs.id, blogId));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: keys.blogs() });

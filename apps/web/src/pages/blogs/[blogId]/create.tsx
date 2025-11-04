@@ -1,13 +1,11 @@
 import { useRouter } from "next/router";
 import { ZendoEditor } from "@/components/Editor/ZendoEditor";
 import { toast } from "sonner";
-import { createSupabaseBrowserClient } from "@/lib/supabase";
 import { useState } from "react";
 
 export default function CreatePost() {
   const router = useRouter();
   const blogId = router.query.blogId as string;
-  const supa = createSupabaseBrowserClient();
   const [loading, setLoading] = useState(false);
 
   return (
@@ -25,43 +23,26 @@ export default function CreatePost() {
               post.category_id = null;
             }
 
-            // Create post and get the result
-            const { data: newPost, error: postError } = await supa
-              .from("posts")
-              .insert({ ...post, blog_id: blogId, meta: metadata })
-              .select("slug, id")
-              .single();
+            // Create post via API route
+            const response = await fetch("/api/posts/create", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                post: { ...post, meta: metadata },
+                tags,
+                authors,
+                blogId,
+              }),
+            });
 
-            if (postError) throw postError;
-
-            // If there are tags, create the associations and wait for completion
-            if (tags && tags.length > 0) {
-              const newTags = tags.map((tag) => ({
-                tag_id: tag.id,
-                blog_id: blogId,
-                post_id: newPost.id,
-              }));
-
-              const { error: tagError } = await supa
-                .from("post_tags")
-                .insert(newTags);
-
-              if (tagError) throw tagError;
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw errorData;
             }
 
-            if (authors && authors.length > 0) {
-              const { error: authorError } = await supa
-                .from("post_authors")
-                .insert(
-                  authors.map((author) => ({
-                    author_id: author,
-                    post_id: newPost.id,
-                    blog_id: blogId,
-                  }))
-                );
-
-              if (authorError) throw authorError;
-            }
+            const { data: newPost } = await response.json();
 
             // Only redirect after both operations complete successfully
             if (content.published) {

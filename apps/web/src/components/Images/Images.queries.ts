@@ -1,7 +1,8 @@
-import { createSupabaseBrowserClient } from "@/lib/supabase";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { API } from "app/utils/api-client";
-import { Airplay } from "lucide-react";
+import { db, blogImages } from "@/db";
+import { eq } from "drizzle-orm";
+import { createSupabaseBrowserClient } from "@/lib/supabase";
 
 // export const useImages = (blogId: string) =>
 //   useQuery({
@@ -17,11 +18,19 @@ export const useMediaQuery = (
   const query = useQuery({
     queryKey: ["media", blogId],
     queryFn: async () => {
-      const { data: blogImages } = await supa
-        .from("blog_images")
-        .select("id, file_url, file_name, created_at, size_in_bytes")
-        .eq("blog_id", blogId);
+      // Fetch blog images from database using Drizzle
+      const dbBlogImages = await db
+        .select({
+          id: blogImages.id,
+          file_url: blogImages.fileUrl,
+          file_name: blogImages.fileName,
+          created_at: blogImages.createdAt,
+          size_in_bytes: blogImages.sizeInBytes,
+        })
+        .from(blogImages)
+        .where(eq(blogImages.blogId, blogId));
 
+      // Fetch Supabase storage images
       const res = await supa.storage.from("images").list(blogId, {
         sortBy: {
           column: "created_at",
@@ -52,7 +61,7 @@ export const useMediaQuery = (
           supabase_hosted?: boolean;
         };
 
-        const formattedBlogImages = blogImages?.map((image) => ({
+        const formattedBlogImages = dbBlogImages?.map((image) => ({
           ...image,
           id: image.id.toString(),
           url: image.file_url,

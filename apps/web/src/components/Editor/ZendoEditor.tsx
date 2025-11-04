@@ -116,7 +116,7 @@ type Props = {
   readOnly?: boolean;
   post?: Database["public"]["Tables"]["posts"]["Row"];
   tags?: { id: string; name: string; slug: string }[];
-  authors?: { id: number; name: string; image_url: string | null }[];
+  authors?: { id: number; name: string; imageUrl: string | null }[];
   autoCompleteSlug?: boolean;
   showPublishedDialog?: boolean;
   categories?: { id: number; name: string }[];
@@ -495,7 +495,7 @@ export const ZendoEditor = (props: Props) => {
   return (
     <div className="relative min-h-screen pb-24">
       <Head>
-        <title>{props.post?.title || title || "Zenblog - New post"}</title>
+        <title>{props.post?.title || title || "ProxyForms - New post"}</title>
         <link rel="icon" href="/static/favicon.ico" />
       </Head>
       {editorLoading && (
@@ -983,7 +983,7 @@ export function AuthorSelector({
   value,
   isLoading,
 }: {
-  authors: { id: number; name: string; image_url: string | null }[]; // author ids
+  authors: { id: number; name: string; imageUrl: string | null }[]; // author ids
   onChange: (authors: number[]) => void;
   value: number[];
   isLoading: boolean;
@@ -1006,9 +1006,9 @@ export function AuthorSelector({
         ) : (
           value.map((author) => (
             <span key={author} className="flex items-center gap-1">
-              {getAuthorFromValue(author)?.image_url ? (
+              {getAuthorFromValue(author)?.imageUrl ? (
                 <img
-                  src={getAuthorFromValue(author)?.image_url || ""}
+                  src={getAuthorFromValue(author)?.imageUrl || ""}
                   alt={getAuthorFromValue(author)?.name || ""}
                   className="h-6 w-6 rounded-full border object-cover"
                 />
@@ -1078,9 +1078,9 @@ export function AuthorSelector({
               )}
             >
               <div className="flex items-center gap-2">
-                {author.image_url ? (
+                {author.imageUrl ? (
                   <img
-                    src={author.image_url || ""}
+                    src={author.imageUrl || ""}
                     alt={author.name}
                     className="h-5 w-5 rounded-full"
                   />

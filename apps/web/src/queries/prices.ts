@@ -1,21 +1,15 @@
-import { createSupabaseBrowserClient } from "@/lib/supabase";
+import { db } from "@/db";
+import { prices } from "@/db/schema";
 import { useQuery } from "@tanstack/react-query";
 import Stripe from "stripe";
 
 const PRICES_KEYS = ["prices"];
 
 export function usePricesQuery() {
-  const sb = createSupabaseBrowserClient();
-
   return useQuery({
     queryKey: PRICES_KEYS,
     queryFn: async () => {
-      const { data, error } = await sb.from("prices").select("*");
-
-      if (error) {
-        console.error(error);
-        throw error;
-      }
+      const data = await db.select().from(prices);
 
       type DataItemType = (typeof data)[0] & { price: Stripe.Price };
 

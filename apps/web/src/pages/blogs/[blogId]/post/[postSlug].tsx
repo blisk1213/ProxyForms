@@ -3,7 +3,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ZendoEditor } from "@/components/Editor/ZendoEditor";
 import { toast } from "sonner";
 import { usePostQuery } from "@/queries/posts";
-import { createSupabaseBrowserClient } from "@/lib/supabase";
 import { usePostTags } from "@/queries/tags";
 import { Loader2 } from "lucide-react";
 import { usePostAuthorsQuery } from "@/queries/authors";
@@ -15,8 +14,6 @@ export default function Post() {
 
   const blogId = router.query.blogId as string;
   const postSlug = router.query.postSlug as string;
-
-  const sb = createSupabaseBrowserClient();
 
   const {
     data: post,
@@ -44,7 +41,7 @@ export default function Post() {
         ?.map((a) => ({
           id: a.author_id,
           name: a.author?.name || "",
-          image_url: a.author?.image_url || null,
+          imageUrl: a.author?.imageUrl || null,
         }))
         .filter((a) => a !== null) || [],
     [authorsQuery.data]
@@ -77,45 +74,25 @@ export default function Post() {
         onSave={async (data) => {
           const { tags, authors, metadata, ...newData } = data;
           try {
-            // TO DO: move this to an rfc
-            const { error } = await sb
-              .from("posts")
-              .update({ ...newData, meta: metadata })
-              .eq("slug", postSlug)
-              .select();
+            // Update post via API route
+            const response = await fetch("/api/posts/update", {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                postSlug,
+                post: { ...newData, meta: metadata },
+                tags,
+                authors,
+                blogId,
+                postId: post.data.id,
+              }),
+            });
 
-            if (error) {
-              throw error;
-            }
-
-            const newTags = data?.tags?.map((tag) => ({
-              tag_id: tag.id,
-              blog_id: blogId,
-              post_id: post.data.id,
-            }));
-
-            if (newTags) {
-              await sb
-                .from("post_tags")
-                .delete()
-                .match({ post_id: post.data.id, blog_id: blogId });
-              await sb.from("post_tags").upsert(newTags, {
-                onConflict: "tag_id, post_id, blog_id",
-              });
-            }
-
-            if (authors) {
-              await sb
-                .from("post_authors")
-                .delete()
-                .match({ post_id: post.data.id, blog_id: blogId });
-              await sb.from("post_authors").upsert(
-                authors.map((author) => ({
-                  author_id: author,
-                  post_id: post.data.id,
-                  blog_id: blogId,
-                }))
-              );
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw errorData;
             }
 
             queryClient.invalidateQueries({
@@ -139,7 +116,7 @@ export default function Post() {
             toast.error("Failed to save post");
           }
         }}
-        post={post.data}
+        post={post.data as any}
         tags={filteredTags} // typescript cant infer properly, breaks build.
         authors={postAuthors}
       />

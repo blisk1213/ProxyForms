@@ -12,10 +12,10 @@ export const useBlogTags = ({ blogId }: UseTags) => {
   const query = useQuery({
     queryKey: ["tags"],
     queryFn: async () => {
-      const { data, error } = await sb
+      const { data, error } = await (sb
         .from("tags")
         .select("*")
-        .eq("blog_id", blogId);
+        .eq as any)("blog_id", blogId);
       if (error) {
         throw error;
       }
@@ -37,7 +37,7 @@ export const useCreateBlogTag = () => {
       slug: string;
       blog_id: string;
     }) => {
-      const { data, error } = await sb.from("tags").insert(category);
+      const { data, error } = await sb.from("tags").insert(category as any);
       if (error) {
         throw error;
       }

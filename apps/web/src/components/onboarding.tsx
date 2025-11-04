@@ -12,17 +12,19 @@ import { useOnboardingMutation } from "@/queries/onboarding";
 import { CircleCheckIcon } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { useRouter } from "next/router";
+import { useUser } from "@clerk/nextjs";
 
 export function OnboardingDropdown() {
   const router = useRouter();
   const currentBlogId = router.query.blogId as string;
+  const { user } = useUser();
 
   const items = getOnboardingItems(currentBlogId);
 
-  const { data, isLoading } = useOnboardingQuery();
-  const { mutate: markAsDone } = useOnboardingMutation();
+  const { data, isLoading } = useOnboardingQuery(user?.id);
+  const { mutate: markAsDone } = useOnboardingMutation(user?.id || "");
 
-  const allAreDone = items.every((item) => data?.[item.id]);
+  const allAreDone = items.every((item) => (data as any)?.[item.id]);
 
   if (allAreDone || isLoading) return null;
 
@@ -46,19 +48,19 @@ export function OnboardingDropdown() {
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      if (data?.[item.id]) return;
+                      if ((data as any)?.[item.id]) return;
                       markAsDone(item.id);
                     }}
                     className="flex items-center gap-2 p-2 [&>svg]:size-5 [&>svg]:hover:text-green-500"
                   >
-                    {data?.[item.id] ? (
+                    {(data as any)?.[item.id] ? (
                       <CircleCheckIcon className="text-green-500" />
                     ) : (
                       <CircleDashedIcon className="text-gray-500" />
                     )}
                   </button>
                 </TooltipTrigger>
-                {data?.[item.id] ? null : (
+                {(data as any)?.[item.id] ? null : (
                   <TooltipContent>Mark as done</TooltipContent>
                 )}
               </Tooltip>

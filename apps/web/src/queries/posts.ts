@@ -1,4 +1,5 @@
-import { createSupabaseBrowserClient } from "@/lib/supabase";
+import { db, posts, postTags } from "@/db";
+import { and, eq, desc } from "drizzle-orm";
 import {
   useInfiniteQuery,
   useMutation,
@@ -11,27 +12,32 @@ export const usePostsQuery = ({
   pageSize = 10,
   sortBy = "created",
 }: { pageSize?: number; sortBy?: "created" | "published" } = {}) => {
-  const sb = createSupabaseBrowserClient();
   const { query } = useRouter();
-  const blogId = query.blogId || "";
+  const blogId = (Array.isArray(query.blogId) ? query.blogId[0] : query.blogId) || "";
 
   return useInfiniteQuery({
     queryKey: ["posts", blogId, sortBy, pageSize],
-    enabled: !!blogId,
+    enabled: !!blogId && blogId !== "",
     initialPageParam: 0,
     getNextPageParam: (lastPage: any, pages: any) => {
       return lastPage?.length > 0 ? pages.length * pageSize : undefined;
     },
     queryFn: async ({ pageParam = 0 }) => {
-      const { data, error } = await sb
-        .from("posts_v10")
-        .select("*")
-        .eq("blog_id", blogId)
-        .eq("deleted", false)
-        .range(pageParam, pageParam + pageSize)
-        .order(sortBy === "created" ? "created_at" : "published_at", {
-          ascending: false,
-        });
+      if (!blogId) {
+        return [];
+      }
+      const data = await db
+        .select()
+        .from(posts)
+        .where(
+          and(
+            eq(posts.blogId, blogId),
+            eq(posts.deleted, false)
+          )
+        )
+        .orderBy(desc(sortBy === "created" ? posts.createdAt : posts.publishedAt))
+        .limit(pageSize + 1)
+        .offset(pageParam);
 
       return data;
     },
@@ -39,36 +45,32 @@ export const usePostsQuery = ({
 };
 
 export const usePostQuery = (postSlug: string, blogId: string) => {
-  const sb = createSupabaseBrowserClient();
-
   return useQuery({
     queryKey: ["post", postSlug],
     queryFn: async () => {
-      const { data, error } = await sb
-        .from("posts")
-        .select("*")
-        .eq("slug", postSlug)
-        .eq("blog_id", blogId)
-        .single();
+      const [post] = await db
+        .select()
+        .from(posts)
+        .where(
+          and(
+            eq(posts.slug, postSlug),
+            eq(posts.blogId, blogId)
+          )
+        )
+        .limit(1);
 
-      if (error) {
-        console.error(error);
-        throw error;
+      if (!post) {
+        throw new Error("Post not found");
       }
 
-      const { data: tagsData, error: tagsError } = await sb
-        .from("post_tags")
-        .select("*")
-        .eq("post_id", data.id);
-
-      if (tagsError) {
-        console.error(tagsError);
-        throw tagsError;
-      }
+      const tagsData = await db
+        .select()
+        .from(postTags)
+        .where(eq(postTags.postId, post.id));
 
       return {
         data: {
-          ...data,
+          ...post,
           tags: tagsData,
         },
       };
@@ -78,7 +80,6 @@ export const usePostQuery = (postSlug: string, blogId: string) => {
 };
 
 export const useUpdatePostTagsMutation = ({ blog_id }: { blog_id: string }) => {
-  const sb = createSupabaseBrowserClient();
   const queryClient = useQueryClient();
 
   type UpdatePostTagsMutation = {
@@ -91,28 +92,19 @@ export const useUpdatePostTagsMutation = ({ blog_id }: { blog_id: string }) => {
       // TO DO: move this to an rfc
 
       // first, delete all tags for this post
-      const { data: deleteData, error: deleteError } = await sb
-        .from("post_tags")
-        .delete()
-        .eq("post_id", postId);
+      await db
+        .delete(postTags)
+        .where(eq(postTags.postId, postId));
 
-      if (deleteError) {
-        console.error(deleteError);
-        throw deleteError;
-      }
-
-      const { data, error } = await sb.from("post_tags").upsert(
-        tags.map((tag) => ({
-          post_id: postId,
-          tag_id: tag,
-          blog_id,
-        })),
-        { onConflict: "post_id, tag_id, blog_id" }
-      );
-
-      if (error) {
-        console.error(error);
-        throw error;
+      // then insert new tags
+      if (tags.length > 0) {
+        await db.insert(postTags).values(
+          tags.map((tag) => ({
+            postId: postId,
+            tagId: tag,
+            blogId: blog_id,
+          }))
+        );
       }
 
       queryClient.invalidateQueries({ queryKey: ["posts"] });

@@ -47,6 +47,7 @@ const Feedback = (props: Props) => {
 
             const { data, error } = await sb
               .from("feedback")
+              // @ts-expect-error - Legacy Supabase feedback table, will be migrated to Drizzle
               .insert({ feedback, type, user_email: user.data.user.email });
 
             if (error) {

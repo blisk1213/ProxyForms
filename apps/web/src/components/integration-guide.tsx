@@ -6,8 +6,8 @@ export function IntegrationGuide({ blogId }: { blogId: string }) {
     <>
       <section className="px-3 [&_h3]:mb-3 [&_h3]:mt-8">
         <h2 className="text-lg font-medium">Integration guide</h2>
-        <h3>First, install the zenblog client</h3>
-        <CodeBlock language="bash">{`npm install zenblog`}</CodeBlock>
+        <h3>First, install the ProxyForms client</h3>
+        <CodeBlock language="bash">{`npm install proxyforms`}</CodeBlock>
 
         <h3>Next, store your blog id as an environment variable</h3>
 
@@ -23,10 +23,10 @@ export function IntegrationGuide({ blogId }: { blogId: string }) {
         <h3>Now, create a client with your blog id</h3>
 
         <CodeBlock title="/lib/cms.ts">
-          {`import { createZenblogClient } from "zenblog";
+          {`import { createProxyFormsClient } from "proxyforms";
 
-const cms = createZenblogClient({
-  blogId: process.env.ZENBLOG_BLOG_ID,
+const cms = createProxyFormsClient({
+  blogId: process.env.PROXYFORMS_BLOG_ID,
 });`}
         </CodeBlock>
 

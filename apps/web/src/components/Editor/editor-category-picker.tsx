@@ -1,4 +1,4 @@
-import { Category } from "@zenblog/types";
+import { Category } from "@proxyforms/types";
 import Spinner from "../Spinner";
 import {
   Select,
