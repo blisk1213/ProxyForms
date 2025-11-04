@@ -2,14 +2,14 @@
  * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
  * for Docker builds.
  */
-// During build phase, skip env validation if SKIP_ENV_VALIDATION is explicitly set
-// This allows building without runtime environment variables (provided at container startup)
-if (!process.env.SKIP_ENV_VALIDATION && process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL) {
-  process.env.SKIP_ENV_VALIDATION = '1';
-}
+// Skip environment validation if explicitly requested or during production builds without env vars
+const shouldSkipValidation =
+  process.env.SKIP_ENV_VALIDATION === '1' ||
+  process.env.SKIP_ENV_VALIDATION === 'true' ||
+  (process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL);
 
 // Only import and validate env if not skipping
-if (!process.env.SKIP_ENV_VALIDATION) {
+if (!shouldSkipValidation) {
   await import("./src/env.mjs");
 }
 
@@ -120,6 +120,7 @@ const config = {
 
   /**
    * Webpack configuration
+   * Note: Next.js 15.5+ supports Turbopack, but we keep webpack as default for compatibility
    */
   webpack: (config, { isServer }) => {
     // Custom webpack config if needed
@@ -143,6 +144,12 @@ const config = {
   },
 
   /**
+   * Turbopack configuration (Next.js 15.5+)
+   * Empty config silences the webpack/turbopack conflict warning
+   */
+  turbopack: {},
+
+  /**
    * Experimental features
    */
   experimental: {
@@ -160,15 +167,13 @@ const config = {
   generateEtags: true,
 
   /**
-   * TypeScript and ESLint
+   * TypeScript configuration
+   * Note: ESLint config removed as it's deprecated in Next.js 15
+   * Use next lint command separately for linting
    */
   typescript: {
     // Don't fail build on type errors in production (handle in CI)
     ignoreBuildErrors: false,
-  },
-  eslint: {
-    // Don't fail build on lint errors in production (handle in CI)
-    ignoreDuringBuilds: false,
   },
 };
 

@@ -18,5 +18,9 @@ ignorePorts = false
 localPort = 3000
 externalPort = 80
 
+[[ports]]
+localPort = 8082
+externalPort = 3000
+
 [agent]
 expertMode = true
