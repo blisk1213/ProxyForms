@@ -1,23 +1,25 @@
-import Spinner from "@/components/Spinner";
-import { useClerk } from "@clerk/nextjs";
-import { useRouter } from "next/router";
 import { useEffect } from "react";
+import { useRouter } from "next/router";
+import { signOut } from "@/lib/auth-client";
+import { Loader2 } from "lucide-react";
 
-export default function SignOut() {
-  const { signOut } = useClerk();
+export default function SignOutPage() {
   const router = useRouter();
 
   useEffect(() => {
-    signOut().then(() => {
+    const handleSignOut = async () => {
+      await signOut();
       router.push("/");
-    });
-  }, [signOut, router]);
+    };
+
+    handleSignOut();
+  }, [router]);
 
   return (
-    <div className="flex h-screen items-center justify-center">
-      <div className="text-center">
-        <Spinner />
-        <p className="mt-4 text-slate-600">Signing out...</p>
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="flex flex-col items-center gap-4">
+        <Loader2 className="animate-spin text-orange-500" size={32} />
+        <p className="text-sm text-zinc-500">Signing out...</p>
       </div>
     </div>
   );

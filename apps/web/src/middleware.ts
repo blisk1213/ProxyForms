@@ -1,5 +1,5 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 
 // inspired by https://github.com/vercel/platforms/blob/main/middleware.ts
 
@@ -22,18 +22,30 @@ const invalidSubdomains = [
 ];
 
 // Define public routes that don't require authentication
-const isPublicRoute = createRouteMatcher([
+const publicRoutes = [
   '/',
-  '/sign-in(.*)',
-  '/sign-up(.*)',
+  '/sign-in',
+  '/sign-up',
   '/pricing',
-  '/api/webhooks(.*)',
-  '/api/public(.*)',
-  '/pub(.*)',
-  '/docs(.*)',
-]);
+  '/api/auth',
+  '/api/webhooks',
+  '/api/public',
+  '/pub',
+  '/docs',
+  '/blog',
+  '/contact',
+  '/privacy',
+  '/terms',
+  '/free-tools',
+];
 
-export default clerkMiddleware(async (auth, req: NextRequest) => {
+function isPublicRoute(pathname: string): boolean {
+  return publicRoutes.some(route =>
+    pathname === route || pathname.startsWith(route + '/')
+  );
+}
+
+export default async function middleware(req: NextRequest) {
   const subdomain = req.headers.get("host")?.split(".")[0];
   const path = req.nextUrl.pathname;
 
@@ -45,11 +57,17 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
   }
 
   // Protect non-public routes
-  if (!isPublicRoute(req)) {
-    await auth.protect();
+  if (!isPublicRoute(path)) {
+    const session = await auth.api.getSession({
+      headers: req.headers,
+    });
+
+    if (!session) {
+      const url = new URL('/sign-in', req.url);
+      url.searchParams.set('redirect', path);
+      return NextResponse.redirect(url);
+    }
   }
 
   return NextResponse.next();
-}, {
-  debug: process.env.NODE_ENV === 'development',
-});
+}

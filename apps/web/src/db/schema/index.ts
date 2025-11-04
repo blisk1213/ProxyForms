@@ -3,6 +3,9 @@ export * from './enums';
 
 // Export all tables and relations
 export * from './users';
+export * from './sessions';
+export * from './accounts';
+export * from './verifications';
 export * from './blogs';
 export * from './posts';
 export * from './categories';

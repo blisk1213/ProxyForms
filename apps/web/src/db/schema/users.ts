@@ -6,17 +6,17 @@ import { subscriptions } from './subscriptions';
 import { onboardingSteps } from './onboarding-steps';
 
 /**
- * Users table - synced from Clerk via webhooks
- * Stores user information from Clerk authentication
+ * Users table - for better-auth
+ * Stores user information
  */
 export const users = pgTable('users', {
-  id: text('id').primaryKey(), // Clerk user ID
+  id: text('id').primaryKey(),
   email: text('email').notNull().unique(),
-  firstName: text('first_name'),
-  lastName: text('last_name'),
-  imageUrl: text('image_url'),
-  createdAt: timestamp('created_at', { mode: 'string' }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { mode: 'string' }).notNull().defaultNow(),
+  emailVerified: timestamp('email_verified', { mode: 'date' }),
+  name: text('name'),
+  image: text('image'),
+  createdAt: timestamp('created_at', { mode: 'date' }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { mode: 'date' }).notNull().defaultNow(),
 });
 
 // Relations

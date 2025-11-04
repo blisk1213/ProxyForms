@@ -10,9 +10,9 @@ import {
 } from "@tanstack/react-query";
 import { Toaster } from "sonner";
 import { useEffect, useState } from "react";
-import { ClerkProvider } from "@clerk/nextjs";
 import { PostHogProvider } from "posthog-js/react";
 import posthog from "posthog-js";
+import { SessionProvider } from "@/lib/auth-client";
 
 // Fonts
 const inter = Inter({
@@ -49,31 +49,29 @@ function MyApp({ Component, pageProps }: AppProps) {
   }, []);
 
   return (
-    <ClerkProvider>
-      <div className={`${inter.variable}`}>
-        <PostHogProvider client={posthog}>
-          <PlausibleProvider domain="proxyforms.com">
-            <QueryClientProvider client={queryClient}>
-              <HydrationBoundary state={pageProps.dehydratedState}>
-                <Component key={pathname} {...pageProps} />
-                <Toaster
-                  position="bottom-center"
-                  toastOptions={{
-                    style: {
-                      borderRadius: "12px",
-                      backgroundColor: "#333333",
-                      color: "white",
-                      padding: "10px 12px",
-                      border: "none",
-                    },
-                  }}
-                />
-              </HydrationBoundary>
-            </QueryClientProvider>
-          </PlausibleProvider>
-        </PostHogProvider>
-      </div>
-    </ClerkProvider>
+    <div className={`${inter.variable}`}>
+      <PostHogProvider client={posthog}>
+        <PlausibleProvider domain="proxyforms.com">
+          <QueryClientProvider client={queryClient}>
+            <HydrationBoundary state={pageProps.dehydratedState}>
+              <Component key={pathname} {...pageProps} />
+              <Toaster
+                position="bottom-center"
+                toastOptions={{
+                  style: {
+                    borderRadius: "12px",
+                    backgroundColor: "#333333",
+                    color: "white",
+                    padding: "10px 12px",
+                    border: "none",
+                  },
+                }}
+              />
+            </HydrationBoundary>
+          </QueryClientProvider>
+        </PlausibleProvider>
+      </PostHogProvider>
+    </div>
   );
 }
 
