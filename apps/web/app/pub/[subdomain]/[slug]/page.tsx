@@ -30,7 +30,7 @@ export async function generateMetadata({
   }
 
   return {
-    title: `${post?.title} - ${blog?.title}` || "A zenblog blog",
+    title: `${post?.title} - ${blog?.title}` || "A ProxyForms blog",
     icons: {
       icon:
         `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>${blog?.emoji}</text></svg>` ||
@@ -38,7 +38,7 @@ export async function generateMetadata({
     },
     description: blog?.description || "Start writing your blog today",
     openGraph: {
-      title: `${post?.title} - ${blog?.title}` || "A zenblog blog",
+      title: `${post?.title} - ${blog?.title}` || "A ProxyForms blog",
       description: blog?.description || "Start writing your blog today",
       type: "website",
       images: [

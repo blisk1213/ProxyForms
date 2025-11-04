@@ -3,8 +3,8 @@ import { DocsPageLayout } from "app/ui/docs-page-layout";
 
 export default function GettingStarted() {
   const items = [
-    { title: "Install Zenblog", href: "install-zenblog" },
-    { title: "Initialize Zenblog", href: "initialize-zenblog" },
+    { title: "Install ProxyForms", href: "install-proxyforms" },
+    { title: "Initialize ProxyForms", href: "initialize-proxyforms" },
     { title: "Fetch your posts", href: "fetch-your-posts" },
     { title: "Render your posts", href: "render-your-posts" },
     {
@@ -18,38 +18,38 @@ export default function GettingStarted() {
     <DocsPageLayout
       tocItems={items as any}
       title="Getting started"
-      description="Welcome to the Zenblog documentation. To get started, you need to create a blog in the Zenblog dashboard and grab your API key."
+      description="Welcome to the ProxyForms documentation. To get started, you need to create a blog in the ProxyForms dashboard and grab your API key."
     >
       <div className="prose prose-headings:font-medium mt-8 max-w-none">
         <h2 id={items[0].href}>{items[0].title}</h2>
         <CodeBlockComponent filename="Terminal" language="sh">
-          {`npm install zenblog`}
+          {`npm install proxyforms`}
         </CodeBlockComponent>
 
         <h2 id={items[1].href}>{items[1].title}</h2>
-        <p>Initialize Zenblog with your API key.</p>
+        <p>Initialize ProxyForms with your API key.</p>
         <CodeBlockComponent
           filename="cms/index.tsx"
           language="typescript"
           highlightedLines={[]}
         >
-          {`import { createZenblogClient } from "zenblog";
+          {`import { createProxyFormsClient } from "proxyforms";
 
-const zenblog = createZenblogClient({ blogId: process.env.ZENBLOG_BLOG_ID });`}
+const proxyforms = createProxyFormsClient({ blogId: process.env.ZENBLOG_BLOG_ID });`}
         </CodeBlockComponent>
 
         <h2 id={items[2].href}>{items[2].title}</h2>
-        <p>Fetch your posts from the Zenblog API.</p>
+        <p>Fetch your posts from the ProxyForms API.</p>
         <CodeBlockComponent
           filename="cms/index.tsx"
           language="typescript"
           highlightedLines={[5]}
         >
-          {`import { createZenblogClient } from "zenblog";
+          {`import { createProxyFormsClient } from "proxyforms";
 
-const zenblog = createZenblogClient({ blogId: process.env.ZENBLOG_BLOG_ID });
+const proxyforms = createProxyFormsClient({ blogId: process.env.ZENBLOG_BLOG_ID });
         
-const posts = await zenblog.posts.list();`}
+const posts = await proxyforms.posts.list();`}
         </CodeBlockComponent>
 
         <h2 id={items[3].href}>{items[3].title}</h2>
@@ -76,11 +76,11 @@ const posts = await zenblog.posts.list();`}
           language="tsx"
           highlightedLines={[5]}
         >
-          {`import { createZenblogClient } from "zenblog";
+          {`import { createProxyFormsClient } from "proxyforms";
 
-const zenblog = createZenblogClient({ blogId: process.env.ZENBLOG_BLOG_ID });
+const proxyforms = createProxyFormsClient({ blogId: process.env.ZENBLOG_BLOG_ID });
 
-const post = await zenblog.posts.get({ slug: "my-first-post" });`}
+const post = await proxyforms.posts.get({ slug: "my-first-post" });`}
         </CodeBlockComponent>
 
         <h2 id={items[5].href}>{items[5].title}</h2>

@@ -4,7 +4,7 @@ import { FadeIn } from "app/ui/fade-in";
 import { formatPostDate } from "app/utils/dates";
 import Link from "next/link";
 import { Bricolage_Grotesque } from "next/font/google";
-import { ZenblogFooter } from "app/ui/zenblog-footer";
+import { ProxyFormsFooter } from "app/ui/proxyforms-footer";
 import { SocialLinks } from "app/ui/SocialLinks";
 
 const h1Font = Bricolage_Grotesque({
@@ -90,7 +90,7 @@ export function DirectoryHome({
           </FadeIn>
         ))}
       </div>
-      <ZenblogFooter />
+      <ProxyFormsFooter />
     </div>
   );
 }

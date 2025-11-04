@@ -1,0 +1,124 @@
+# ==============================================================================
+# ProxyForms Railway Configuration
+# Railway-specific deployment configuration
+# ==============================================================================
+
+[build]
+# Use nixpacks for build
+builder = "nixpacks"
+
+# Build command (optional, nixpacks.toml handles this)
+# buildCommand = "bun run build"
+
+# Watch paths for automatic deployments
+watchPatterns = [
+  "apps/web/**",
+  "packages/**",
+  "*.toml",
+  "package.json",
+  "bun.lockb"
+]
+
+[deploy]
+# Start command (defined in nixpacks.toml)
+# startCommand = "cd apps/web && bun server.js"
+
+# Number of replicas (can be scaled in Railway dashboard)
+numReplicas = 1
+
+# Health check configuration
+healthcheckPath = "/api/health"
+healthcheckTimeout = 100
+restartPolicyType = "on-failure"
+restartPolicyMaxRetries = 10
+
+# ==============================================================================
+# Service Configuration
+# ==============================================================================
+
+[[services]]
+name = "web"
+
+[services.regions]
+# Deploy to regions closest to your users
+# Available: us-west1, us-east4, europe-west4, etc.
+regions = ["us-west1"]
+
+# ==============================================================================
+# Environment-Specific Configuration
+# ==============================================================================
+
+# Production environment
+[environments.production]
+variables = { NODE_ENV = "production", NEXT_TELEMETRY_DISABLED = "1" }
+
+# Staging environment (optional)
+[environments.staging]
+variables = { NODE_ENV = "production", NEXT_TELEMETRY_DISABLED = "1" }
+
+# ==============================================================================
+# Railway Plugins Configuration
+# ==============================================================================
+#
+# Add these plugins via Railway Dashboard:
+#
+# 1. PostgreSQL Plugin:
+#    - Automatically provides DATABASE_URL
+#    - Version: PostgreSQL 17
+#    - Enable in Railway dashboard → Plugins → PostgreSQL
+#
+# 2. Redis Plugin:
+#    - Automatically provides REDIS_URL and REDIS_PASSWORD
+#    - Version: Redis 7
+#    - Enable in Railway dashboard → Plugins → Redis
+#
+# ==============================================================================
+# Required External Services
+# ==============================================================================
+#
+# These services need to be configured separately:
+#
+# 1. MinIO/S3 Storage:
+#    - Option A: Self-hosted MinIO (separate Railway service)
+#    - Option B: CloudFlare R2 (recommended)
+#    - Option C: AWS S3
+#    - Option D: DigitalOcean Spaces
+#
+# 2. Clerk Authentication:
+#    - Sign up at https://clerk.com
+#    - Create production application
+#    - Copy API keys to Railway environment variables
+#
+# 3. Stripe Payments:
+#    - Sign up at https://stripe.com
+#    - Use live mode keys (not test mode)
+#    - Configure webhook endpoint in Stripe dashboard
+#
+# 4. Resend Email:
+#    - Sign up at https://resend.com
+#    - Verify sending domain
+#    - Copy API key to Railway environment variables
+#
+# ==============================================================================
+# Deployment Checklist
+# ==============================================================================
+#
+# Before deploying:
+# □ Add PostgreSQL plugin in Railway
+# □ Add Redis plugin in Railway
+# □ Configure all required environment variables
+# □ Set up external MinIO/S3 storage
+# □ Configure Clerk webhook URL
+# □ Configure Stripe webhook URL
+# □ Add custom domain in Railway
+# □ Update NEXT_PUBLIC_APP_URL to match domain
+#
+# After first deployment:
+# □ Run database migrations: railway run bun run db:push
+# □ Test health endpoint: curl https://yourdomain.com/api/health
+# □ Verify Clerk authentication works
+# □ Test Stripe payment flow (if applicable)
+# □ Upload test image to verify storage
+# □ Check application logs for errors
+#
+# ==============================================================================

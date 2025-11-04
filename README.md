@@ -1,16 +1,16 @@
 <p align="center">
-  <a href="https://github.com/jordienr/zenblog/stargazers>
-    <img src="https://img.shields.io/github/stars/jordienr/zenblog?logo=github&style=for-the-badge&color=yellow" alt="Github Stars"></a>
+  <a href="https://github.com/proxyforms/proxyforms/stargazers>
+    <img src="https://img.shields.io/github/stars/proxyforms/proxyforms?logo=github&style=for-the-badge&color=yellow" alt="Github Stars"></a>
   </a>
 </p>
 <p align="center" style="margin-top: 12px">
 
-  <h1 align="center"><tt>Zenblog</tt></h1>
+  <h1 align="center"><tt>ProxyForms</tt></h1>
   <h2 align="center">Simple, fast, headless blogging CMS</h2>
 
 <p align="center">
-    <a href="https://zenblog.com"><strong>Website</strong></a> » 
-    <a href="https://twitter.com/zenbloghq">
+    <a href="https://proxyforms.com"><strong>Website</strong></a> »
+    <a href="https://twitter.com/proxyforms">
     <strong>Twitter</strong>
     </a>
   </p>
@@ -23,13 +23,13 @@
 
 ## 🏗️ Current Status
 
-`Zenblog` is currently under heavy development. The initial public release is expected in 2024
+`ProxyForms` is currently under heavy development. The initial public release is expected in 2024
 
 ---
 
 ## About
 
-Zenblog is an open source, headless CMS for blogging. It's designed to be as simple to integrate as possible, while still providing a great user experience for both writers, readers and developers.
+ProxyForms (formerly Zenblog) is an open source, headless CMS for blogging. It's designed to be as simple to integrate as possible, while still providing a great user experience for both writers, readers and developers.
 
 ## Features
 
@@ -61,14 +61,19 @@ In my opinion, headless CMS solutions are too pricey when you just want to fetch
 
 ## Tech Stack
 
-`Zenblog` is built with the following epic technologies & tools:
+`ProxyForms` (formerly Zenblog) is built with the following technologies & tools:
 
-- [Supabase](https://supabase.com/) Database, Auth, Storage, Functions
-- [NextJS](https://nextjs.org) Vue based FrontEnd & Backend + modules
-- [Tailwind](https://tailwindcss.com/) CSS Engine
-- [TypeScript](https://www.typescriptlang.org/) Needs no introduction
-
-_p.s. Things will change over time!_
+- [PostgreSQL 17](https://www.postgresql.org/) - Database
+- [Clerk](https://clerk.com/) - Authentication
+- [Next.js 14](https://nextjs.org) - React Framework (App Router)
+- [Drizzle ORM](https://orm.drizzle.team/) - TypeScript ORM
+- [Redis](https://redis.io/) - Caching
+- [MinIO](https://min.io/) - S3-compatible Object Storage
+- [Stripe](https://stripe.com/) - Payments
+- [Resend](https://resend.com/) - Transactional Emails
+- [Tailwind CSS](https://tailwindcss.com/) - Styling
+- [TypeScript](https://www.typescriptlang.org/) - Type Safety
+- [Bun](https://bun.sh/) - Package Manager & Runtime
 
 ## Running Locally
 
@@ -76,17 +81,47 @@ To get a local copy up and running, follow these simple steps.
 
 ### Prerequisites
 
-Here is what you need to be able to run Zenblog locally.
+Here is what you need to be able to run ProxyForms locally:
 
-- Node.js (Version: >=20.x)
-- NVM (Recommended) (Node Version Manager) (see https://github.com/nvm-sh/nvm)
-- npm (see https://npmjs.com/)
-- Docker
-- Supabase CLI
+- [Bun](https://bun.sh/) (Version: >=1.0.0) - Fast JavaScript runtime & package manager
+- [Docker](https://www.docker.com/) - For PostgreSQL, Redis, and MinIO
+- [Stripe CLI](https://stripe.com/docs/stripe-cli) (Optional) - For webhook testing
 
 ### Setup
 
-A step by step guide on how to set up the project locally will be available soon.
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/proxyforms/proxyforms.git
+   cd proxyforms
+   ```
+
+2. **Install dependencies**
+   ```bash
+   bun install
+   ```
+
+3. **Set up environment variables**
+   ```bash
+   cp .env.example .env
+   # Edit .env with your configuration
+   ```
+
+4. **Start Docker services** (PostgreSQL, Redis, MinIO)
+   ```bash
+   bun run docker:up
+   ```
+
+5. **Run database migrations**
+   ```bash
+   bun run db:push
+   ```
+
+6. **Start the development server**
+   ```bash
+   bun run dev:web
+   ```
+
+The app will be available at `http://localhost:8082`
 
 ## Self Hosting
 
@@ -94,4 +129,4 @@ A self hosting guide will be available soon.
 
 ## Contributing
 
-Zenblog is not ready for contributions yet. If you're interested in contributing, please reach out to me on [Twitter](https://twitter.com/jordienr). I still need to do a lot of work to get the project ready for contributions. Thanks for your interest!
+ProxyForms is not ready for contributions yet. If you're interested in contributing, please reach out to me on [Twitter](https://twitter.com/proxyforms). I still need to do a lot of work to get the project ready for contributions. Thanks for your interest!

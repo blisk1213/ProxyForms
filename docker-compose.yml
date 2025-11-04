@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+  # PostgreSQL 17 Database
+  postgres:
+    image: postgres:17-alpine
+    container_name: proxyforms-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-proxyforms}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-proxyforms_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-proxyforms}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-proxyforms}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - proxyforms
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: proxyforms-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-proxyforms_redis_password}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - proxyforms
+
+  # Minio S3-Compatible Storage
+  minio:
+    image: minio/minio:latest
+    container_name: proxyforms-minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000"      # API
+      - "9001:9001"      # Console
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-proxyforms}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-proxyforms_minio_password}
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - proxyforms
+
+  # Minio Client - Creates buckets on startup
+  minio-mc:
+    image: minio/mc:latest
+    container_name: proxyforms-minio-mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      until /usr/bin/mc config host add minio http://minio:9000 ${MINIO_ROOT_USER:-proxyforms} ${MINIO_ROOT_PASSWORD:-proxyforms_minio_password}; do
+        echo 'Waiting for MinIO...'
+        sleep 1
+      done;
+      /usr/bin/mc mb minio/proxyforms-images --ignore-existing;
+      /usr/bin/mc mb minio/proxyforms-media --ignore-existing;
+      /usr/bin/mc anonymous set download minio/proxyforms-images;
+      echo 'Buckets created successfully';
+      exit 0;
+      "
+    networks:
+      - proxyforms
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  minio_data:
+    driver: local
+
+networks:
+  proxyforms:
+    driver: bridge

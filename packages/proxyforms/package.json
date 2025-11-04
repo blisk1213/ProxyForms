@@ -1,0 +1,43 @@
+{
+  "name": "proxyforms",
+  "version": "2.0.0",
+  "description": "The official TypeScript client for ProxyForms headless CMS",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "public": true,
+  "exports": {
+    ".": "./dist/index.js",
+    "./types": "./src/types.ts"
+  },
+  "files": [
+    "dist",
+    "types",
+    "src"
+  ],
+  "scripts": {
+    "test": "vitest",
+    "build": "tsc",
+    "dev": "tsc -w",
+    "prepublishOnly": "bun install && bun run test && bun run build",
+    "publish:prod": "npm publish --access public",
+    "publish:beta": "npm publish --access public --tag beta"
+  },
+  "keywords": [
+    "proxyforms",
+    "headless-cms",
+    "blog",
+    "cms",
+    "content-management",
+    "typescript"
+  ],
+  "author": "Mohamed Elkholy",
+  "license": "MIT",
+  "dependencies": {
+    "@types/node": "^20.17.6",
+    "@proxyforms/types": "^1.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vitest": "^3.0.5"
+  }
+}

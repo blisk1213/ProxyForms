@@ -17,9 +17,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: endpoint?.title,
     description: endpoint?.description,
-    keywords: ["api", "documentation", "zenblog", "cms", "headless cms"],
+    keywords: ["api", "documentation", "proxyforms", "cms", "headless cms"],
     abstract: endpoint?.description,
-    authors: [{ name: "Zenblog", url: "https://zenblog.com" }],
+    authors: [{ name: "ProxyForms", url: "https://proxyforms.com" }],
   };
 }
 

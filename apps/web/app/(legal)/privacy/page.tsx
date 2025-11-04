@@ -4,7 +4,7 @@ export default function Privacy() {
     <div className="prose mx-auto mt-8 max-w-xl px-4 pb-24">
       <h1 className="text-xl font-medium">Privacy Policy</h1>
       <p>
-        At Zenblog Software, Inc. ("Zenblog," "we," "us," or "our"), we are
+        At ProxyForms Software, Inc. ("ProxyForms," "we," "us," or "our"), we are
         committed to protecting your privacy and ensuring the security of your
         personal information. This Privacy Policy explains how we collect, use,
         disclose, and safeguard your information when you use our software
@@ -111,7 +111,7 @@ export default function Privacy() {
           <h3>Contact Us</h3>
           <br />
           If you have any questions or concerns about this Privacy Policy or our
-          privacy practices, please contact us at support@zenblog.com.
+          privacy practices, please contact us at support@proxyforms.com.
         </li>
       </ol>
       <p className="text-center">Last updated: October 23, 2024</p>

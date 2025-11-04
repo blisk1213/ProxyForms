@@ -1,0 +1,71 @@
+# ==============================================================================
+# .dockerignore - Exclude files from Docker build context
+# ==============================================================================
+
+# Dependencies
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+bun-debug.log*
+
+# Testing
+**/.jest
+**/coverage
+**/*.test.ts
+**/*.test.tsx
+**/*.test.js
+**/*.test.jsx
+**/*.spec.ts
+**/*.spec.tsx
+
+# Next.js
+.next/
+out/
+build/
+dist/
+.turbo/
+
+# Environment files (will be provided at runtime)
+.env
+.env*.local
+.env.development
+.env.production
+.env.test
+
+# Cache
+.cache/
+.bun/
+.eslintcache
+.stylelintcache
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Git
+.git/
+.gitignore
+.gitattributes
+.github/
+
+# Documentation
+README.md
+CHANGELOG.md
+LICENSE
+*.md
+docs/
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Misc
+.editorconfig
+.prettierrc
+.prettierignore

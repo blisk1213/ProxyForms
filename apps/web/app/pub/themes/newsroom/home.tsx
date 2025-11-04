@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import { BlogHomeProps } from "app/types";
 import { FadeIn } from "app/ui/fade-in";
-import { ZenblogFooter } from "app/ui/zenblog-footer";
+import { ProxyFormsFooter } from "app/ui/proxyforms-footer";
 import { formatPostDate } from "app/utils/dates";
 import Link from "next/link";
 
@@ -89,7 +89,7 @@ export function NewsroomHome({ posts, blog, disableLinks }: BlogHomeProps) {
           </div>
         </div>
       </div>
-      <ZenblogFooter />
+      <ProxyFormsFooter />
     </div>
   );
 }

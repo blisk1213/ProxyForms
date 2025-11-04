@@ -1,6 +1,6 @@
 import { Blog } from "app/types";
 import { SocialLinks } from "app/ui/SocialLinks";
-import { ZenblogFooter } from "app/ui/zenblog-footer";
+import { ProxyFormsFooter } from "app/ui/proxyforms-footer";
 import React from "react";
 import { BlogPostItem } from "./blog-post-item";
 
@@ -58,7 +58,7 @@ export function DefaultHome({
           />
         ))}
       </div>
-      <ZenblogFooter />
+      <ProxyFormsFooter />
     </div>
   );
 }

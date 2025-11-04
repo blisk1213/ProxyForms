@@ -5,7 +5,7 @@ export default function TermsOfService() {
       <div className="text-center">
         <h1 className="text-xl font-medium">Terms of Service</h1>
         <p>
-          Welcome to Zenblog. By using Zenblog, you agree to these terms of
+          Welcome to ProxyForms. By using ProxyForms, you agree to these terms of
           service.
         </p>
       </div>
@@ -14,7 +14,7 @@ export default function TermsOfService() {
         <li>
           <h3>Introduction</h3>
           <br />
-          Welcome to Zenblog Software, Inc. ("Zenblog," "we," "us," or "our").
+          Welcome to ProxyForms Software, Inc. ("ProxyForms," "we," "us," or "our").
           These Terms of Service ("Terms") govern your access to and use of our
           website, software, and services (collectively, the "Services"). By
           accessing or using our Services, you agree to be bound by these Terms.
@@ -24,10 +24,10 @@ export default function TermsOfService() {
         <li>
           <h3>Services</h3>
           <br />
-          Zenblog provides a platform that allows users to record their screen
+          ProxyForms provides a platform that allows users to record their screen
           and webcam, edit their recordings, generate shareable links, and
           collaborate with others through "Spaces." We offer a free plan with
-          usage limits and a paid "Zenblog Pro" plan.
+          usage limits and a paid "ProxyForms Pro" plan.
         </li>
         <li>
           <h3>User Accounts</h3>
@@ -45,7 +45,7 @@ export default function TermsOfService() {
           You are solely responsible for the content you record, upload, or
           otherwise make available through our Services ("User Content"). By
           making any User Content available through our Services, you grant to
-          Zenblog a non-exclusive, transferable, sublicensable, worldwide,
+          ProxyForms a non-exclusive, transferable, sublicensable, worldwide,
           royalty-free license to use, copy, modify, create derivative works
           based upon, distribute, publicly display, and publicly perform your
           User Content in connection with operating and providing our Services.
@@ -54,7 +54,7 @@ export default function TermsOfService() {
           <h3>Intellectual Property</h3>
           <br />
           Our Services and their original content, features, and functionality
-          are owned by Zenblog and are protected by international copyright,
+          are owned by ProxyForms and are protected by international copyright,
           trademark, patent, trade secret, and other intellectual property or
           proprietary rights laws. You may not copy, modify, distribute, sell,
           or lease any part of our Services, nor may you reverse engineer or
@@ -104,7 +104,7 @@ export default function TermsOfService() {
         <li>
           <h3>Limitation of Liability</h3>
           <br />
-          To the fullest extent permitted by law, Zenblog shall not be liable
+          To the fullest extent permitted by law, ProxyForms shall not be liable
           for any indirect, incidental, special, consequential, or punitive
           damages, or any loss of profits or revenues, whether incurred directly
           or indirectly, or any loss of data, use, goodwill, or other intangible
@@ -113,7 +113,7 @@ export default function TermsOfService() {
         <li>
           <h3>Indemnification</h3>
           <br />
-          You agree to defend, indemnify, and hold harmless Zenblog and its
+          You agree to defend, indemnify, and hold harmless ProxyForms and its
           affiliates, officers, agents, and employees from and against any
           claims, damages, obligations, losses, liabilities, costs, or debt, and
           expenses (including but not limited to attorney's fees) arising from
@@ -155,7 +155,7 @@ export default function TermsOfService() {
           c. Refunds will be issued using the original payment method.
           <br />
           d. To request a refund, please contact our support team at
-          support@zenblog.com with your account details and reason for the
+          support@proxyforms.com with your account details and reason for the
           refund request.
           <br />
           e. We reserve the right to deny refund requests that we determine to
@@ -179,7 +179,7 @@ export default function TermsOfService() {
           <h3>Contact Us</h3>
           <br />
           If you have any questions about these Terms, please contact us at
-          support@zenblog.com.
+          support@proxyforms.com.
         </li>
       </ol>
       <p className="text-center">Last updated: October 23, 2024</p>

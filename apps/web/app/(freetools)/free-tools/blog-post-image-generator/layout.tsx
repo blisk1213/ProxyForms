@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 
 export const metadata: Metadata = {
-  title: "Zenblog - Create Free Beautiful Blog Post Images",
+  title: "ProxyForms - Create Free Beautiful Blog Post Images",
   description:
     "Generate stunning Open Graph images for your blog posts with customizable templates, colors, and fonts.",
 };

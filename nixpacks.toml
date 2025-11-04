@@ -1,0 +1,188 @@
+# ==============================================================================
+# ProxyForms Nixpacks Configuration
+# For deployment on Railway, Render, and other nixpacks-compatible platforms
+# ==============================================================================
+
+[phases.setup]
+# Install Bun as the package manager and runtime
+nixPkgs = ["...", "bun"]
+
+[phases.install]
+# Install all dependencies using Bun
+cmds = [
+  "bun install --frozen-lockfile"
+]
+
+[phases.build]
+# Build packages and Next.js application
+cmds = [
+  # Build packages first (monorepo)
+  "cd packages/types && bun run build || echo 'Types package has no build step'",
+  "cd ../../packages/proxyforms && bun run build",
+
+  # Build Next.js application
+  "cd ../../apps/web",
+  "bun run build"
+]
+
+[start]
+# Start the production server using Next.js standalone output
+cmd = "cd apps/web && bun server.js"
+
+# ==============================================================================
+# Environment Variables
+# ==============================================================================
+
+[variables]
+# Node Environment
+NODE_ENV = "production"
+
+# Next.js Configuration
+NEXT_TELEMETRY_DISABLED = "1"
+
+# Port Configuration (Railway provides PORT automatically)
+PORT = "3000"
+HOSTNAME = "0.0.0.0"
+
+# Build Configuration
+# Skip environment validation during build (values provided at runtime)
+SKIP_ENV_VALIDATION = "true"
+
+# ==============================================================================
+# Static Assets and Caching
+# ==============================================================================
+
+[staticAssets]
+# Serve static files from .next/static
+"apps/web/.next/static" = "/_next/static"
+"apps/web/public" = "/"
+
+# ==============================================================================
+# Health Check
+# ==============================================================================
+
+[healthcheck]
+# Health check endpoint for monitoring
+path = "/api/health"
+interval = 30
+timeout = 10
+retries = 3
+
+# ==============================================================================
+# Build Optimization
+# ==============================================================================
+
+[build]
+# Use build cache for faster builds
+cache = true
+
+# Cache directories
+[[build.cacheDirectories]]
+dir = "node_modules"
+
+[[build.cacheDirectories]]
+dir = ".next/cache"
+
+[[build.cacheDirectories]]
+dir = "apps/web/.next/cache"
+
+# ==============================================================================
+# Deployment Configuration Notes
+# ==============================================================================
+#
+# REQUIRED ENVIRONMENT VARIABLES (Set in Railway/Platform Dashboard):
+# ------------------------------------------------------------------------------
+#
+# Database:
+#   DATABASE_URL - PostgreSQL connection string
+#
+# Authentication (Clerk):
+#   CLERK_SECRET_KEY
+#   CLERK_WEBHOOK_SECRET
+#   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+#   NEXT_PUBLIC_CLERK_SIGN_IN_URL = "/sign-in"
+#   NEXT_PUBLIC_CLERK_SIGN_UP_URL = "/sign-up"
+#   NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL = "/blogs"
+#   NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL = "/blogs"
+#
+# Payments (Stripe):
+#   STRIPE_SECRET_KEY
+#   STRIPE_WEBHOOK_SECRET
+#   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+#
+# Cache (Redis):
+#   REDIS_URL - Redis connection string
+#   REDIS_PASSWORD (optional if included in URL)
+#
+# Storage (MinIO/S3):
+#   MINIO_ENDPOINT
+#   MINIO_PORT = "9000"
+#   MINIO_USE_SSL = "true"
+#   MINIO_ROOT_USER
+#   MINIO_ROOT_PASSWORD
+#   MINIO_BUCKET_IMAGES = "proxyforms-images"
+#   MINIO_BUCKET_MEDIA = "proxyforms-media"
+#   NEXT_PUBLIC_MINIO_URL - Public CDN URL
+#
+# Email (Resend):
+#   RESEND_API_KEY
+#
+# Application:
+#   NEXT_PUBLIC_APP_URL - Your production domain
+#   NEXT_PUBLIC_API_URL - API endpoint URL
+#
+# Optional (Analytics):
+#   NEXT_PUBLIC_POSTHOG_KEY
+#   NEXT_PUBLIC_POSTHOG_HOST = "https://eu.i.posthog.com"
+#   AXIOM_TOKEN
+#   AXIOM_ORG_ID
+#   TINYBIRD_TOKEN
+#
+# Optional (AI):
+#   OPENAI_API_KEY
+#
+# ------------------------------------------------------------------------------
+# DEPLOYMENT STEPS:
+# ------------------------------------------------------------------------------
+#
+# 1. Set up services first:
+#    - PostgreSQL database (Railway Postgres plugin or external)
+#    - Redis cache (Railway Redis plugin or Upstash)
+#    - MinIO/S3 storage (separate service or CloudFlare R2)
+#
+# 2. Add all required environment variables in Railway dashboard
+#
+# 3. Deploy this repository to Railway
+#
+# 4. Run database migrations after first deploy:
+#    Railway CLI: railway run bun run db:push
+#    Or via Railway dashboard shell
+#
+# 5. Configure webhooks:
+#    - Clerk webhook: https://yourdomain.com/api/webhooks/clerk
+#    - Stripe webhook: https://yourdomain.com/api/webhooks/stripe
+#
+# ------------------------------------------------------------------------------
+# RAILWAY-SPECIFIC NOTES:
+# ------------------------------------------------------------------------------
+#
+# Railway automatically provides:
+#   - PORT environment variable
+#   - RAILWAY_ENVIRONMENT (production/staging)
+#   - RAILWAY_PROJECT_ID
+#   - RAILWAY_SERVICE_NAME
+#
+# Railway Plugins Available:
+#   - PostgreSQL (automatic DATABASE_URL)
+#   - Redis (automatic REDIS_URL)
+#
+# Custom Domain Setup:
+#   - Add custom domain in Railway dashboard
+#   - Update NEXT_PUBLIC_APP_URL to match
+#   - Configure DNS records as shown in Railway
+#
+# Scaling:
+#   - Adjust RAM/CPU in Railway dashboard
+#   - Recommended: 2GB RAM minimum for production
+#
+# ------------------------------------------------------------------------------

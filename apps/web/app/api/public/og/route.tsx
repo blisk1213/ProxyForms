@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
     searchParams.get("title") || "Add a blog to your website in 2 minutes!";
   const emoji = searchParams.get("emoji") || "⛩️";
 
-  const url = searchParams.get("url") || "zenblog.com";
+  const url = searchParams.get("url") || "proxyforms.com";
   const urlColor = searchParams.get("urlColor") || "#f97316";
   const bgColor = searchParams.get("bgColor") || "#fafafa";
 

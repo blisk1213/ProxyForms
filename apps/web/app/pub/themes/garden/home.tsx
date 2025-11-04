@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import { BlogHomeProps } from "app/types";
 import { SocialLinks } from "app/ui/SocialLinks";
-import { ZenblogFooter } from "app/ui/zenblog-footer";
+import { ProxyFormsFooter } from "app/ui/proxyforms-footer";
 import { formatPostDate } from "app/utils/dates";
 import { Cormorant_Garamond } from "next/font/google";
 import Link from "next/link";
@@ -104,7 +104,7 @@ export function GardenHome({ blog, posts, disableLinks }: BlogHomeProps) {
           ))}
         </div>
       </div>
-      <ZenblogFooter />
+      <ProxyFormsFooter />
     </div>
   );
 }

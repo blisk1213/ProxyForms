@@ -20,7 +20,7 @@ import { useBlogsQuery } from "@/queries/blogs";
 import { cn } from "@/lib/utils";
 import Head from "next/head";
 import { useSubscriptionQuery } from "@/queries/subscription";
-import { ZenblogToolbar } from "@/components/dev/zenblog-toolbar";
+import { ProxyFormsToolbar } from "@/components/dev/proxyforms-toolbar";
 import { IS_DEV } from "@/lib/constants";
 import { OnboardingDropdown } from "@/components/onboarding";
 import { posthogIdentify } from "lib/posthog";
@@ -98,12 +98,12 @@ export default function AppLayout({
     <div
       className={`flex min-h-screen flex-col border-b bg-slate-50 font-sans`}
     >
-      {/* {IS_DEV && <ZenblogToolbar />} */}
+      {/* {IS_DEV && <ProxyFormsToolbar />} */}
       <Head>
-        <title>Zenblog</title>
+        <title>ProxyForms</title>
         <meta name="description" content="Simple, headless, blogging CMS." />
         <link rel="icon" href="/static/favicon.ico" />
-        <meta property="og:title" content="Zenblog" />
+        <meta property="og:title" content="ProxyForms" />
         <meta
           property="og:description"
           content="Simple, headless, blogging CMS."
@@ -126,7 +126,7 @@ export default function AppLayout({
                     className="flex items-center justify-center rounded-xl px-1 py-4 text-lg font-medium"
                   >
                     <ZendoLogo hideText />
-                    <span className="ml-2">zenblog</span>
+                    <span className="ml-2">ProxyForms</span>
                   </Link>
                 )}
                 {selectedBlog && (

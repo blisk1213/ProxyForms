@@ -289,13 +289,13 @@ export default function OGImageGenerator() {
                   Blog Post Image Generator
                 </h1>
                 <p className="text-muted-foreground -mt-px text-sm font-medium">
-                  A free tool by Zenblog
+                  A free tool by ProxyForms
                 </p>
               </div>
             </div>
             <Button asChild className="rounded-full">
               <Link href="/" className="flex items-center gap-1 font-medium">
-                Try Zenblog
+                Try ProxyForms
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>

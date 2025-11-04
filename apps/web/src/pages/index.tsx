@@ -199,7 +199,7 @@ const Home = () => {
                     link: "https://github.com/proxyforms/nextjs",
                     demo: "https://proxyforms-nextjs-template.vercel.app/blog",
                     desc: "Next.js ProxyForms example with Tailwind CSS and TypeScript",
-                    image: "/static/zenblog-nextjs-template.webp",
+                    image: "/static/proxyforms-nextjs-template.webp",
                   },
                   // {
                   //   id: "proxyforms/astro",
@@ -314,32 +314,32 @@ const Home = () => {
 const tweets = [
   {
     content:
-      "I started using @zenbloghq yesterday. I literally got it running on my Astro site in 10 minutes. Really great product",
+      "I started using @proxyforms yesterday. I literally got it running on my Astro site in 10 minutes. Really great product",
     name: "Alvaro",
     username: "metasurfero",
     image: "/static/tweets/metasurfero.jpg",
   },
   {
-    content: "I'm using @zenbloghq and you probably should too",
+    content: "I'm using @proxyforms and you probably should too",
     name: "Duncan Lutz",
     username: "duncanthedev",
     image: "/static/tweets/duncanthedev.jpg",
   },
   {
     content:
-      "By the way, the CMS is @zenbloghq. A brilliant CMS that simply works. Integrating it with the website didn't take 5 minutes.",
+      "By the way, the CMS is @proxyforms. A brilliant CMS that simply works. Integrating it with the website didn't take 5 minutes.",
     name: "Narix Hine",
     username: "leximory",
     image: "/static/tweets/leximory.jpg",
   },
   {
-    content: "@zenbloghq is the best",
+    content: "@proxyforms is the best",
     name: "dmytro",
     username: "pqoqubbw",
     image: "/static/tweets/pqoqubbw.jpg",
   },
   {
-    content: "zenblog gud",
+    content: "proxyforms is awesome",
     name: "william",
     username: "williamhzo",
     image: "/static/tweets/williamhzo.jpg",
