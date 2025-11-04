@@ -19,8 +19,8 @@ cmds = [
   # Build packages first (monorepo)
   "bun run build:proxyforms",
 
-  # Build Next.js application
-  "bun run build:web"
+  # Build Next.js application with env validation skipped
+  "SKIP_ENV_VALIDATION=1 bun run build:web"
 ]
 
 [start]
