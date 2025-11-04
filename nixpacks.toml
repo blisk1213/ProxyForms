@@ -19,8 +19,8 @@ cmds = [
   # Build packages first (monorepo)
   "bun run build:proxyforms",
 
-  # Build Next.js application with env validation skipped
-  "SKIP_ENV_VALIDATION=1 bun run build:web"
+  # Build Next.js application (SKIP_ENV_VALIDATION set in [variables] section)
+  "bun run build:web"
 ]
 
 [start]
@@ -44,7 +44,7 @@ HOSTNAME = "0.0.0.0"
 
 # Build Configuration
 # Skip environment validation during build (values provided at runtime)
-SKIP_ENV_VALIDATION = "true"
+SKIP_ENV_VALIDATION = "1"
 
 # ==============================================================================
 # Static Assets and Caching
