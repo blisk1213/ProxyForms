@@ -9,7 +9,6 @@ export const {
   signUp,
   signOut,
   useSession,
-  $Infer,
 } = authClient;
 
 // For backward compatibility

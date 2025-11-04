@@ -14,15 +14,13 @@ cmds = [
 ]
 
 [phases.build]
-# Build packages and Next.js application
+# Build packages and Next.js application using Turbo monorepo commands
 cmds = [
   # Build packages first (monorepo)
-  "cd packages/types && bun run build || echo 'Types package has no build step'",
-  "cd ../../packages/proxyforms && bun run build",
+  "bun run build:proxyforms",
 
   # Build Next.js application
-  "cd ../../apps/web",
-  "bun run build"
+  "bun run build:web"
 ]
 
 [start]
@@ -96,14 +94,11 @@ dir = "apps/web/.next/cache"
 # Database:
 #   DATABASE_URL - PostgreSQL connection string
 #
-# Authentication (Clerk):
-#   CLERK_SECRET_KEY
-#   CLERK_WEBHOOK_SECRET
-#   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-#   NEXT_PUBLIC_CLERK_SIGN_IN_URL = "/sign-in"
-#   NEXT_PUBLIC_CLERK_SIGN_UP_URL = "/sign-up"
-#   NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL = "/blogs"
-#   NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL = "/blogs"
+# Authentication (better-auth):
+#   BETTER_AUTH_SECRET - 32+ character secret for session encryption
+#   BETTER_AUTH_URL - Your production domain (e.g., https://yourdomain.com)
+#   NEXT_PUBLIC_SIGN_IN_URL = "/sign-in"
+#   NEXT_PUBLIC_SIGN_UP_URL = "/sign-up"
 #
 # Payments (Stripe):
 #   STRIPE_SECRET_KEY
@@ -159,7 +154,6 @@ dir = "apps/web/.next/cache"
 #    Or via Railway dashboard shell
 #
 # 5. Configure webhooks:
-#    - Clerk webhook: https://yourdomain.com/api/webhooks/clerk
 #    - Stripe webhook: https://yourdomain.com/api/webhooks/stripe
 #
 # ------------------------------------------------------------------------------
